@@ -5,9 +5,8 @@
 # Checkout the example from the demo_project: demo_project/doe-suite-config/super_etl/demo_plots.yml
 
 $SUITE_ID$:
-  load_latency_matmul: 1753200739
-  # mixed_workload_sosp: 1744542177
-  # mixed_workload_sosp_firecracker: 1744729514
+  load_latency_matmul: <ID> 
+  mixed_workload_sosp: <ID> 
 
 $ETL$:
   matmul_128_97hot:
@@ -21,14 +20,13 @@ $ETL$:
     loaders:
       MatmulMixedLoadLatencyPlotLoader:
         percentiles: [50, 99]
-  # mixed_workload:
-  #   experiments:
-  #     mixed_workload_sosp: "*"
-  #     mixed_workload_sosp_firecracker: "*"
-  #   extractors:
-  #     MixedWorkloadExtractor: {}
-  #     IgnoreExtractor:
-  #       file_regex: '.*\.[log|pkl]'
-  #   transformers: []
-  #   loaders:
-  #     MixedWorkloadLoader: {}
+  mixed_workload:
+    experiments:
+      mixed_workload_sosp: "*"
+    extractors:
+      MixedWorkloadExtractor: {}
+      IgnoreExtractor:
+        file_regex: '.*\.[log|pkl]'
+    transformers: []
+    loaders:
+      MixedWorkloadLoader: {}

@@ -52,3 +52,15 @@ For the experiment in figure 8 run the command:
 ```
 make run suite=mixed_workload_sosp id=new cloud=cloudlab
 ```
+
+# Creating the plots
+
+Once all the data is collected, there should be a folder called `doe-suite-results`.
+In that folder the results will be in folders will be named `<experiment name>_<ID>`.
+The IDs need to be filled in `doe-suite-config/super_etl/SOSP_plots.yml`.
+Replace the `<ID>` placeholders under `$SUITE_ID$` with the IDs of the results folders.
+Once that is done, execute the following command in the `doe-suite` folder:
+
+```
+make etl-super config=SOSP_plots
+```
