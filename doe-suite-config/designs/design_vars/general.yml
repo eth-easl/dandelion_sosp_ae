@@ -1,0 +1,148 @@
+---
+
+dandelion_version: "{{ dandelion.version }}"
+
+server_configs:
+  dedicated:
+    target: "dedicated"
+    features: ""
+    command: "{{ dedicated_bin }}"
+  dedicated_timestamp:
+    target: "dedicated"
+    features: "timestamp"
+    command: "{{ dedicated_bin }}_timestamp"
+  dedicated_limited:
+    target: "dedicated"
+    features: "limited"
+    command: "taskset --cpu-list 0-[% (my_run.cores | default(1) | int) - 1 %] {{ dedicated_bin }}"
+  dedicated_limited_timestamp:
+    target: "dedicated"
+    features: "limited,timestamp"
+    command: "taskset --cpu-list 0-[% (my_run.cores | default(1) | int) - 1 %] {{ dedicated_bin }}_timestamp"
+
+  dandelion_wasm:
+    target: "{{ dandelion_versions.wasm.name }}"
+    features: ""
+    command: "{{ bin_folder ~ dandelion_versions.wasm.name }}"
+  dandelion_wasm_timestamp:
+    target: "{{ dandelion_versions.wasm.name }}"
+    features: "timestamp"
+    command: "{{ bin_folder ~ dandelion_versions.wasm.name }}_timestamp"
+  dandelion_wasm_limited:
+    target: "{{ dandelion_versions.wasm.name }}"
+    features: "limited"
+    command: "NUM_TOTAL_CORES=[% my_run.cores | default(1) %] {{ bin_folder ~ dandelion_versions.wasm.name }}"
+  dandelion_wasm_limited_timestamp:
+    target: "{{ dandelion_versions.wasm.name }}"
+    features: "limited,timestamp"
+    command: "NUM_TOTAL_CORES=[% my_run.cores | default(1) %] {{ bin_folder ~ dandelion_versions.wasm.name }}_timestamp"
+
+  dandelion_process:
+    target: "{{ dandelion_versions.process.name }}"
+    features: ""
+    command: "RUST_LOG=debug PROCESS_WORKER_PATH={{bin_folder ~ dandelion_versions.process.name + '_worker'}} \
+      {{bin_folder ~ dandelion_versions.process.name}}"
+  dandelion_process_timestamp:
+    target: "{{ dandelion_versions.process.name }}"
+    features: "timestamp"
+    command: "PROCESS_WORKER_PATH={{bin_folder ~ dandelion_versions.process.name + '_worker'}} \
+      {{bin_folder ~ dandelion_versions.process.name}}_timestamp"
+  dandelion_process_limited:
+    target: "{{ dandelion_versions.process.name }}"
+    features: "limited"
+    command: "NUM_TOTAL_CORES=[% my_run.cores | default(1) %] PROCESS_WORKER_PATH={{bin_folder ~ dandelion_versions.process.name + '_worker'}} \
+      {{bin_folder ~ dandelion_versions.process.name}}"
+  dandelion_process_limited_timestamp:
+    target: "{{ dandelion_versions.process.name }}"
+    features: "limited,timestamp"
+    command: "NUM_TOTAL_CORES=[% my_run.cores | default(1) %] PROCESS_WORKER_PATH={{bin_folder ~ dandelion_versions.process.name + '_worker'}} \
+      {{bin_folder ~ dandelion_versions.process.name}}_timestamp"
+  dandelion_process_wait_polling:
+    target: "{{ dandelion_versions.process.name }}"
+    features: "wait_pooling"
+    command: "PROCESS_WORKER_PATH={{bin_folder ~ dandelion_versions.process.name + '_worker'}} \
+      {{bin_folder ~ dandelion_versions.process.name}}_wait_polling"
+
+  dandelion_cheri:
+    target: "{{ dandelion_versions.cheri.name }}"
+    features: ""
+    command: "{{ bin_folder ~ dandelion_versions.cheri.name }}"
+  dandelion_cheri_timestamp:
+    target: "{{ dandelion_versions.cheri.name }}"
+    features: "timestamp"
+    command: "{{ bin_folder ~ dandelion_versions.cheri.name }}_timestamp"
+  dandelion_cheri_limited:
+    target: "{{ dandelion_versions.cheri.name }}"
+    features: "limited"
+    command: "NUM_TOTAL_CORES=[% my_run.cores | default(1) %] {{ bin_folder ~ dandelion_versions.cheri.name }}"
+  dandelion_cheri_limited_timestamp:
+    target: "{{ dandelion_versions.cheri.name }}"
+    features: "limited,timestamp"
+    command: "NUM_TOTAL_CORES=[% my_run.cores | default(1) %] {{ bin_folder ~ dandelion_versions.cheri.name }}_timestamp"
+
+  dandelion_kvm:
+    target: "{{ dandelion_versions.kvm.name }}"
+    features: ""
+    command: "{{ bin_folder ~ dandelion_versions.kvm.name }}"
+  dandelion_kvm_timestamp:
+    target: "{{ dandelion_versions.kvm.name }}"
+    features: "timestamp"
+    command: "{{ bin_folder ~ dandelion_versions.kvm.name }}_timestamp"
+  dandelion_kvm_limited:
+    target: "{{ dandelion_versions.kvm.name }}"
+    features: "limited"
+    command: "NUM_TOTAL_CORES=[% my_run.cores | default(1) %] {{ bin_folder ~ dandelion_versions.kvm.name }}"
+  dandelion_kvm_limited_timestamp:
+    target: "{{ dandelion_versions.kvm.name }}"
+    features: "limited,timestamp"
+    command: "NUM_TOTAL_CORES=[% my_run.cores | default(1) %] {{ bin_folder ~ dandelion_versions.kvm.name }}_timestamp"
+
+  firecracker:
+    target: "firecracker"
+    features: ""
+    command: "sudo RUST_LOG=main=warn {{ firecracker.frontend_bin }} -f {{ firecracker.fc_bin }} \
+      -k {{ firecracker.kernel_path }} -r {{ firecracker.rootfs_path }} --use-snapshots false \
+      -h [% my_run.hot_vms | default(1) %] -c [% my_run.cold_vms | default(1) %]"
+  firecracker_limited:
+    target: "firecracker"
+    features: "limited"
+    command: "sudo RUST_LOG=main=warn \
+      taskset --cpu-list 0-[% (my_run.cores | default(1) | int) - 1 %] \
+      {{ firecracker.frontend_bin }} -f {{ firecracker.fc_bin }} \
+      -k {{ firecracker.kernel_path }} -r {{ firecracker.rootfs_path }} --use-snapshots false \
+      -h [% my_run.hot_vms | default(1) %] -c [% my_run.cold_vms | default(1) %]"
+   
+  firecracker_snapshot:
+    target: "firecracker"
+    features: "snapshot"
+    command: "sudo RUST_LOG=main=warn {{ firecracker.frontend_bin }} -f {{ firecracker.fc_bin }} \
+      -k {{ firecracker.kernel_path }} -r {{ firecracker.rootfs_path }} --use-snapshots true \
+      -h [% my_run.hot_vms | default(1) %] -c [% my_run.cold_vms | default(1) %]"
+  firecracker_snapshot_limited:
+    target: "firecracker"
+    features: "limited"
+    command: "sudo RUST_LOG=main=warn \
+      taskset --cpu-list 0-[% (my_run.cores | default(1) | int) - 1 %] \
+      {{ firecracker.frontend_bin }} -f {{ firecracker.fc_bin }} \
+      -k {{ firecracker.kernel_path }} -r {{ firecracker.rootfs_path }} --use-snapshots true \
+      -h [% my_run.hot_vms | default(1) %] -c [% my_run.cold_vms | default(1) %]"
+
+  wasmtime:
+    target: "wasmtime"
+    features: ""
+    command: "bash {{ wasmtime.script_path }} {{ wasmtime.exp_path}} [% exp_host_lst | get_ip_for_hosttype('loader') %] 8080 --enable-pooling"
+  
+  wasmtime_ondemand:
+    target: "wasmtime"
+    features: "ondemand"
+    command: "bash {{ wasmtime.script_path }} {{ wasmtime.exp_path}} [% exp_host_lst | get_ip_for_hosttype('loader') %] 8080 --disable-pooling"
+
+  wasmtime_limited:
+    target: "wasmtime"
+    features: "limited"
+    command: "bash {{ wasmtime.script_path }} {{ wasmtime.exp_path}} [% exp_host_lst | get_ip_for_hosttype('loader') %] 8080 --enable-pooling [% my_run.hot_vms | default(1) %]"
+
+  hyperlight:
+    target: "hyperlight"
+    features: ""
+    command: "{{ hyperlight.hyperlight_bin }} -w {{ hyperlight.workload_path }} "

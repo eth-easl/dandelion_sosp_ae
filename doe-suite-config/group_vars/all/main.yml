@@ -1,0 +1,97 @@
+---
+
+# set remote repository (code will be cloned on each remote host)
+git_remote_repository: []
+# set empty because we clone in the base setup to accomodate proxies and jumphosts
+
+prj_id_prefix: "dandelion"
+
+prj_id: "{{ prj_id_prefix }}_{{ does_project_id_suffix }}"
+
+
+# The following parameters define how the playbook checks whether a job finished, fetches the results and starts the next job.
+# - 'job_n_tries' is the maximal number times we check the job's status before aborting
+# - 'job_check_wait_time' is the time (in seconds) to wait in between checking whether a job finished
+# Note that those parameters directly influence the playbook duration:
+# Each experiments runs for at most #jobs * 'job_n_tries' * 'job_check_wait_time' seconds (usually less when the experiment finishes earlier).
+# The experiments are mostly run concurrently (apart from the setup and cleanup parts). Thus, the experiment with the most jobs defines the
+# maximal duration. But as experiments usually use fewer than 'job_n_tries' tries, an experiment with few long-running jobs can be the bottleneck too.
+job_n_tries: 100   # should be max 1000 (otherwise playbook freezes -> unsure why)
+job_check_wait_time: 200 
+
+# if the previous job finished less than 30 seconds before
+etl_minimum_delay_sec: 30
+
+experiment_folder: "{{ '/tmp/' + prj_id }}"
+
+remote:
+  dir: "{{ experiment_folder + '/doe-suite' }}"
+  results_dir: "{{ experiment_folder + '/doe-suite-results' }}"
+
+# folder where this project is cloned to 
+experiment_dir: "{{ remote.dir + '/experiment'}}"
+
+local:
+  results_dir: "{{ does_project_dir }}/doe-suite-results"
+  designs_dir: "{{ does_config_dir }}/designs"
+
+# Define specific tooling information
+arch_dict:
+  aarch64: arm64
+  x86_64: amd64
+firecracker_version: "v1.5.0"
+firecracker_dir: "{{ experiment_folder + '/firecracker-bin' }}"
+cni_version: "v1.3.0"
+cni_dir: "{{ experiment_folder + '/cni'}}"
+morello_llvm_version: 1.8
+morello_llvm_name: "linux-{{ ansible_architecture }}-release-{{ morello_llvm_version }}"
+morello_llvm_path: "{{ experiment_folder + '/morello-llvm'}}"
+
+# Defined the version of dependencies here so they can be used
+# in the setup roles but don't need to be a submodule
+dandelion:
+  url: git@github.com:eth-easl/dandelion.git
+  version: debug/hybrid_connection_upgrade_absolute
+  dir: "{{ experiment_folder + '/dandelion' }}"
+linux:
+  url: git@github.com:torvalds/linux.git
+  version: 830b3c68c1fb
+  dir: "{{ experiment_folder + '/linux' }}"
+
+# Binaries that should be built by the setup and are used during the experiment 
+bin_folder: "{{ remote.dir + '/bin/' }}"
+# loader side binaries
+loader_bin: "{{ bin_folder + 'client' }}"
+http_storage_bin: "{{ bin_folder  + 'http_storage' }}"
+# worker side binaries
+dedicated_bin: "{{ bin_folder + 'dedicated' }}"
+firecracker:
+  fc_bin: "/bin/firecracker"
+  rootfs_path: "{{ experiment_dir + '/servers/firecracker/image/rootfs.ext4' }}"
+  kernel_path: "{{ experiment_dir + '/servers/firecracker/image/vmlinux.bin' }}"
+  frontend_bin: "{{ bin_folder + 'firecracker_frontend' }}"
+wasmtime:
+  script_path: "{{ experiment_dir + '/servers/wasmtime/run.sh' }}"
+  exp_path: "{{ experiment_dir + '/servers/wasmtime' }}"
+hyperlight:
+  hyperlight_bin: "{{ bin_folder + 'hyperlight-wasm' }}"
+  workload_path: "{{ experiment_dir + '/servers/hyperlight/matmul.wasm' }}"
+  
+dandelion_versions:
+  wasm:
+    features: "wasm,reqwest_io,controller"
+    name: "dandelion-rwasm"
+  process:
+    features: "mmu,reqwest_io,controller"
+    name: "dandelion-process"
+  cheri: 
+    features: "cheri,reqwest_io,controller"
+    name: "dandelion-cheri"
+  kvm:
+    features: "kvm,reqwest_io,controller"
+    name: "dandelion-kvm"
+# compiler flags to make dandelion-process-worker statically linked
+# (and position-independent when possible) for better loading performance
+process_worker_rustflags_dict:
+  aarch64: "-C target-feature=+crt-static -C link-arg=-Wl,-fuse-ld=lld,--image-base=0xaaaaaaaa0000"
+  x86_64: "-C target-feature=+crt-static"

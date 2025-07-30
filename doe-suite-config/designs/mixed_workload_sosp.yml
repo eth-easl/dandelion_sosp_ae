@@ -1,0 +1,80 @@
+---
+load_latency: # collect data for a load latency plot
+    n_repetitions: 1 # no repetition
+    common_roles: setup-base
+    host_types:
+        loader:
+            n: 1
+            init_roles: setup-loader
+            $CMD$:
+                main: "ulimit -n 1048576 && {{loader_bin}} \
+                    --outputdir ./results/ \
+                    --duration [% my_run.duration %] \
+                    --ip [% exp_host_lst | get_ip_for_hosttype('worker') %] \
+                    --storageip [% exp_host_lst | get_ip_for_hosttype('loader') %] \
+                    --target [% my_run.server_configs[my_run.server].target %] \
+                    --requestformat middleware-app \
+                    --trace-path {{ experiment_dir }}/client/traces/example1.csv \
+                    --hotpercent [% my_run.hotpercent %] \
+                    --cold-instances [% my_run.cold_instances %] \
+                    --model open-loop \
+                    --service-timeout 540 \
+                    --workload-path {{dandelion.dir | default('')}}[% exp_host_lst | get_workloadpath_for_target(my_run.server_configs[my_run.server].target, 'middleware-app') %] && sleep 10"
+                main2: "ulimit -n 1048576 && {{loader_bin}} \
+                    --outputdir ./results/ \
+                    --duration [% my_run.duration %] \
+                    --ip [% exp_host_lst | get_ip_for_hosttype('worker') %] \
+                    --storageip [% exp_host_lst | get_ip_for_hosttype('loader') %] \
+                    --target [% my_run.server_configs[my_run.server].target %] \
+                    --requestformat compression-app \
+                    --trace-path {{ experiment_dir }}/client/traces/example2.csv \
+                    --hotpercent [% my_run.hotpercent %] \
+                    --cold-instances [% my_run.cold_instances %] \
+                    --model open-loop \
+                    --service-timeout 540 \
+                    --workload-path {{dandelion.dir | default('')}}[% exp_host_lst | get_workloadpath_for_target(my_run.server_configs[my_run.server].target, 'compression-app') %]"
+                http_storage: "ulimit -n 1048576 && {{ http_storage_bin }} --delay [% my_run.delay %]"
+        worker:
+            n: 1
+            init_roles: setup-worker
+            check_status: False
+            $CMD$:
+                "ulimit -n 1048576 && STORAGE_HOST=[% exp_host_lst | get_ip_for_hosttype('loader') %]:8000 \
+                DISPATCHER_CORES=1 FRONTEND_CORES=2 IO_CORES=[% my_run.io_cores %] CONTROL_KI=[% my_run.control_ki %] CONTROL_KP=[% my_run.control_kp %] CONTROL_INTERVAL=[% my_run.control_interval %] [% my_run.server_configs[my_run.server].command %]"
+    base_experiment:
+        $INCLUDE_VARS$: general.yml
+        server:
+            $FACTOR$:
+                # - dedicated
+                - wasmtime
+                - dandelion_process
+                # - dandelion_kvm
+                # - firecracker
+                - firecracker_snapshot
+        control_kp: 0.008
+        control_ki: 0.002
+        control_interval: 30
+        io_cores: 1
+        fine: 50
+        coarse: 200
+        delay: 10000
+        duration:
+            $FACTOR$: ["90"]
+        hotpercent:
+            $FACTOR$: ["0.97"]
+        cold_instances: 1
+        hot_vms: 32
+        cold_vms: 512
+
+# -> can add other experiments here
+
+$ETL$:
+    pipeline1: # pipeline_name
+        experiments: "*" # or "*" for all experiments
+        extractors:
+            IgnoreExtractor:
+                file_regex: ".*" # ignore everything as we do etl through super etl once everything is done
+        transformers: []
+        loaders: []
+
+    # -> can add other pipelines here

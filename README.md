@@ -1,0 +1,54 @@
+# Setup
+Originally we ran our experiments on internal servers, but have ported them to cloudlab, so evaluators can rerun them more easily.
+Consequently you will need a cloudlab account to get access to the resources.
+
+Clone the [experiment repository](https://github.com/eth-easl/dandelionExperiments/tree/sosp25/).
+If you clone the base repository, make sure to check out the branch `sosp25`.
+Also make sure you clone recursively, as we depend on the doe-suite for running our experiments.
+
+```
+git clone -b sosp25 --recurse-submodules https://github.com/eth-easl/dandelionExperiments 
+cd dandelionExperiments
+```
+
+The `doe-suite` relies on a few environment variables to be set, that need to be set before any experiment can be started.
+For this run the following commands in the repositories root directory:
+```
+export DOES_PROJECT_DIR=$(pwd)
+export DOES_PROJECT_ID_SUFFIX="eval"
+export DOES_SSH_KEY_NAME=<path to your ssh key for cloudlab>
+```
+
+To run the `doe-suite` you need python3 and make installed as well as ssh set up. 
+For additional information on the suite, documentation and setup instructions can be found [here](https://nicolas-kuechler.github.io/doe-suite/installation.html)
+
+# Running the experiment
+
+On cloudlab, create an experiment with the `multi_node_profile`, `UBUNTU22-64-STD` image and 2 hardware nodes of type `d430` available in `Emulab`.
+
+In `doe-suite-config/inventory/cloudlab.yml` you need to replace the two placeholders with the URIs of the servers.
+Make sure to use the uri of node 0 is the loader and node 1 is the worker, so the IPs they use to address each other are correct.
+
+Additionally in the `doe-suite/ansible.cfg` add a additional line at the bottom (under `ssh_connection`):
+```
+retries = 10
+```
+
+To rerun the experiments for figure 6 in the paper, run the following command in the `does-suite` folder:
+```
+make run suite=load_latency_matmul id=new cloud=cloudlab
+```
+Note: this experiment takes a long time to run (>4h).
+Also the very first time any experiment is run on the servers, the scripts automatically set up everything (installing libraraies, builing binaries etc.).
+During the setup process 2 failures are expected, the first one that cargo is missing and the second one is about setting up some networking configurations.
+Neither of these should stop the process, as the next commands should fix the issues and it should continue running.
+While the experiment scripts on your computer are waiting for the experiment to finish, there will be messages in the form of:
+```
+FAILED - RETRYING: [loader_node]: Get status of job (X retries left).
+```
+This is normal, as it is the experiment framework trying to retrieve the results, but seeing that the exeriment has not finished.
+
+For the experiment in figure 8 run the command:
+```
+make run suite=mixed_workload_sosp id=new cloud=cloudlab
+```

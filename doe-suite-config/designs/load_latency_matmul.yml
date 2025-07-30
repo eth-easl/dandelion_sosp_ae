@@ -1,0 +1,71 @@
+---
+
+load_latency: # collect data for a load latency plot
+  n_repetitions: 1 # no repetition
+  common_roles: setup-base
+  host_types:
+    loader:
+      n: 1
+      init_roles: setup-loader
+      $CMD$:
+        main: "ulimit -n 1048576 && {{loader_bin}} \
+          --outputdir ./results/ \
+          --duration [% my_run.duration %] \
+          --ip [% exp_host_lst | get_ip_for_hosttype('worker') %] \
+          --storageip [% exp_host_lst | get_ip_for_hosttype('loader') %] \
+          --target [% my_run.server_configs[my_run.server].target %] \
+          --requestformat [% my_run.function %] \
+          --size [% my_run.size %] \
+          --hotpercent [% my_run.hotpercent %] \
+          --cold-instances [% my_run.cold_instances %] \
+          --step-fine [% my_run.fine %] \
+          --step-coarse [% my_run.coarse %] \
+          --model open-sweep \ 
+          --service-timeout 540 \
+          --workload-path {{dandelion.dir | default("")}}[% exp_host_lst | get_workloadpath_for_target(my_run.server_configs[my_run.server].target, my_run.function) %]"
+        http_storage: "{{ http_storage_bin }}"
+    worker:
+      n: 1
+      init_roles: setup-worker
+      check_status: False
+      $CMD$: "sleep 3m && ulimit -n 1048576 && FRONTEND_CORES=2 DISPATCHER_CORES=1 [% my_run.server_configs[my_run.server].command %]"
+  base_experiment:
+    $INCLUDE_VARS$: general.yml
+    server:
+      $FACTOR$:
+        - dandelion_wasm
+        - dandelion_process
+        - dandelion_kvm
+        - firecracker
+        - firecracker_snapshot
+        - wasmtime
+    function:
+      $FACTOR$:
+        - "matmul" # single mat mul, no composition
+    fine: "10"
+    coarse: "200"
+    size:
+      $FACTOR$: ["128"]
+    duration:
+      $FACTOR$: ["180"]
+    hotpercent:
+      $FACTOR$: ["0.97"]
+    cold_instances: 10000
+    hot_vms: 16
+    cold_vms: 512
+  # except_filters:
+    # - server: firecracker_snapshot
+      # hotpercent: "1.00"
+
+# -> can add other experiments here
+
+$ETL$:
+  pipeline1: # pipeline_name
+    experiments: "*" # or "*" for all experiments
+    extractors: 
+      IgnoreExtractor:
+        file_regex: '.*' # ignore everything as we do etl through super etl once everything is done 
+    transformers: []
+    loaders: []
+
+  # -> can add other pipelines here

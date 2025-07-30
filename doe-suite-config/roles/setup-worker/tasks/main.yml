@@ -1,0 +1,172 @@
+---
+
+- name: build dedicated
+  block:
+  - name: build dedicated
+    import_tasks: ../cargo_build.yml
+    vars:
+      output_path: "{{ dedicated_bin }}"
+      source_dir: "{{experiment_dir + '/servers/baremetal'}}"
+      build_dir: "{{ experiment_dir + '/servers/baremetal/target/' }}"
+      binary_name: "native"
+      features: "-F middleware"
+  - name: build dedicated
+    import_tasks: ../cargo_build.yml
+    vars:
+      output_path: "{{ dedicated_bin }}_timestamp"
+      source_dir: "{{experiment_dir + '/servers/baremetal'}}"
+      build_dir: "{{ experiment_dir + '/servers/baremetal_timestamp/' }}"
+      binary_name: "native"
+      features: "-F timestamp,middleware"
+
+- name: install docker
+  import_tasks: local_docker.yml
+  when: "'firecracker' in available_engines"
+
+- name: build firecracker
+  import_tasks: firecracker.yml
+  when: '"firecracker" in available_engines'
+
+- name: Disable hyperthreading
+  block:
+    - name: Disbale hyperthreading (check)
+      ansible.builtin.shell:
+        cmd: "cat /sys/devices/system/cpu/smt/control"
+      register: cpu_hyper_state
+      changed_when: "'forceoff' not in cpu_hyper_state.stdout and 'notimplemented' not in cpu_hyper_state.stdout"
+    - name: Disable hyperthreading (enforce)
+      ansible.builtin.shell:
+        cmd: "sh -c 'echo \"forceoff\" > \"/sys/devices/system/cpu/smt/control\"'"
+      become: true
+      when: "'forceoff' not in cpu_hyper_state.stdout and 'notimplemented' not in cpu_hyper_state.stdout"
+
+- name: Install spin runtime
+  ansible.builtin.shell:
+    cmd: "curl -fsSL https://spinframework.dev/downloads/install.sh | bash -s -- --version v3.0.0"
+    chdir: "/usr/local/bin" 
+    creates: "/usr/local/bin/spin"
+  become: true
+  when: '"spin" in available_engines'
+
+- name: build dandelion wasm
+  block:
+    - name: build dandelion wasm
+      import_tasks: ../cargo_build.yml
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.wasm.name }}"
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.wasm.name }}"
+        binary_name: "dandelion_server"
+        features: "-F {{ dandelion_versions.wasm.features }}"
+    - name: build dandelion wasm with timestamps
+      import_tasks: ../cargo_build.yml 
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.wasm.name}}_timestamp" 
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.wasm.name }}_timestamp"
+        binary_name: "dandelion_server"
+        features: "-F timestamp,{{ dandelion_versions.wasm.features }}"
+  when: '"wasm" in available_engines' 
+
+- name: build dandelion process
+  block:
+    - name: build dandelion process worker 
+      import_tasks: ../cargo_build.yml 
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.process.name + '_worker'}}" 
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.process.name }}"
+        binary_name: "mmu_worker"
+        features: "-F {{ dandelion_versions.process.features }} --bin mmu_worker --target {{ ansible_architecture }}-unknown-linux-gnu"
+        rustflags: "{{ process_worker_rustflags_dict[ ansible_architecture ] }}"
+        target_dir: "{{ ansible_architecture }}-unknown-linux-gnu"
+    - name: build dandelion process 
+      import_tasks: ../cargo_build.yml 
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.process.name}}" 
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.process.name }}"
+        binary_name: "dandelion_server"
+        features: "-F {{ dandelion_versions.process.features }}"
+    - name: build dandelion process with timestamps 
+      import_tasks: ../cargo_build.yml 
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.process.name }}_timestamp" 
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.process.name }}_timestamp"
+        binary_name: "dandelion_server"
+        features: "-F timestamp,{{ dandelion_versions.process.features }}"
+    - name: build dandelion process with wait polling 
+      import_tasks: ../cargo_build.yml 
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.process.name }}_wait_polling" 
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.process.name }}_wait_polling"
+        binary_name: "dandelion_server"
+        features: "-F wait_polling,{{ dandelion_versions.process.features }}"
+  when: '"process" in available_engines'
+  
+- name: build dandelion cheri
+  block:
+    - name: Install Morello LLVM (download)
+      ansible.builtin.get_url:
+        url: "https://git.morello-project.org/morello/llvm-project-releases/-/archive/morello/{{ morello_llvm_name }}/llvm-project-releases-morello-{{ morello_llvm_name }}.tar.gz"
+        dest: "{{ experiment_folder + '/morello-llvm.tar.gz' }}"
+    - name: Install Morello LLVM (unpack)
+      ansible.builtin.shell: 
+        cmd: "tar -C {{ experiment_folder }} -xzf {{ experiment_folder + '/morello-llvm.tar.gz' }} && mv {{ experiment_folder + '/llvm-project-releases-morello-' + morello_llvm_name }} {{ morello_llvm_path }}"
+        creates: "{{ morello_llvm_path }}"
+    - name: build dandelion cheri 
+      import_tasks: ../cargo_build.yml 
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.cheri.name}}" 
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.cheri.name }}"
+        binary_name: "dandelion_server"
+        features: "-F {{ dandelion_versions.cheri.features }}"
+        cc: "{{ morello_llvm_path }}/bin/clang"
+        cxx: "{{ morello_llvm_path }}/bin/clang++"
+        ld: "{{ morello_llvm_path }}/bin/ld.lld"
+    - name: build dandelion cheri with timestamps 
+      import_tasks: ../cargo_build.yml 
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.cheri.name }}_timestamp" 
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.cheri.name }}_timestamp"
+        binary_name: "dandelion_server"
+        features: "-F timestamp,{{ dandelion_versions.cheri.features }}"
+        cc: "{{ morello_llvm_path }}/bin/clang"
+        cxx: "{{ morello_llvm_path }}/bin/clang++"
+        ld: "{{ morello_llvm_path }}/bin/ld.lld"
+  when: '"cheri" in available_engines'
+
+- name: build dandelion kvm
+  block:
+    - name: build dandelion kvm
+      import_tasks: ../cargo_build.yml
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.kvm.name }}"
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.kvm.name }}"
+        binary_name: "dandelion_server"
+        features: "-F {{ dandelion_versions.kvm.features }}"
+    - name: build dandelion kvm with timestamps
+      import_tasks: ../cargo_build.yml 
+      vars:
+        output_path: "{{ bin_folder + dandelion_versions.kvm.name}}_timestamp" 
+        source_dir: "{{ dandelion.dir }}"
+        build_dir: "{{ dandelion.dir + '/../' + dandelion_versions.kvm.name }}_timestamp"
+        binary_name: "dandelion_server"
+        features: "-F timestamp,{{ dandelion_versions.kvm.features }}"
+  when: '"kvm" in available_engines' 
+
+- name: build hyperlight wasm
+  block:
+    - name: build hyperlight wasm
+      import_tasks: ../cargo_build.yml
+      vars:
+        output_path: "{{ bin_folder + 'hyperlight-wasm' }}"
+        source_dir: "{{ experiment_dir + '/servers/hyperlight' }}"
+        build_dir: "{{ experiment_dir + '/servers/hyperlight' }}"
+        binary_name: "hyperlight-wasm"
+  when: '"hyperlight" in available_engines'

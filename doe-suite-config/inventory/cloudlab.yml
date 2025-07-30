@@ -1,0 +1,22 @@
+---
+
+all:
+  children:
+    loader: # corresponds to an entry under `host_types` in suite designs (and to doe-suite-config/group_vars/<HOST-TYPE-1>` folder)
+      hosts:
+        loader_node:
+          ansible_host: "<server url here>"
+          private_dns_name: "10.10.1.1"
+          extend_disk: ""
+    worker:
+      hosts:
+        worker_node:
+          ansible_host: "<server url here>"
+          private_dns_name: "10.10.1.2" 
+          available_engines:
+            - process
+            - wasm
+            - kvm
+            - firecracker
+            - spin
+          extend_disk: ""

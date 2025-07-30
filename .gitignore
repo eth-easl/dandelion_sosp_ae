@@ -1,0 +1,34 @@
+# rust ignores
+**/target
+# go ignores
+**/main
+
+# firecracker artifacts
+servers/firecracker/app
+servers/firecracker/main
+servers/firecracker/rootfs.ext4
+servers/firecracker/tc-redirect-tap/
+servers/firecracker/vmlinux.bin
+
+# python caches
+**__pycache__
+
+# editor files
+.vscode
+
+# ignore result files
+*.png
+*.csv
+result_*/
+doe-suite-results/*
+**/.envrc
+figures/*
+paper_figures/*
+
+# ignore python app backup data
+servers/dandelion/python_app/Lib_backup
+servers/dandelion/python_app/jinja2
+servers/dandelion/python_app/markupsafe
+
+# include trace files for loader
+!client/traces/*

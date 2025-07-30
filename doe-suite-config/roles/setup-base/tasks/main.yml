@@ -1,0 +1,139 @@
+---
+- debug:
+      msg: "-> base only"
+  tags: [print_action]
+
+- name: Get git version of the local commit
+  delegate_to: localhost
+  shell: "(cd {{ does_project_dir }} && git log -1 --format=%H)"
+  register: git_commit
+
+- name: Clone the experiment repository
+  ansible.builtin.git:
+      repo: git@github.com:eth-easl/dandelionExperiments.git
+      dest: "{{ experiment_dir }}"
+      accept_hostkey: yes
+      force: true
+      version: "{{ git_commit.stdout }}"
+  environment:
+      GIT_SSH_COMMAND: "{{ git_ssh_command | default('ssh') }}"
+
+- name: Get facts
+  ansible.builtin.package_facts:
+      manager: auto
+
+- name: Extend disk
+  block:
+    - name: Make disk extension script executable
+      ansible.builtin.file:
+        mode: u+x
+        path: "{{ experiment_dir }}/doe-suite-config/roles/setup-base/setup-grow-rootfs.sh"
+    - name: Run disk extension script
+      ansible.builtin.shell:
+        cmd: "sudo env RESIZEROOT=0 {{ experiment_dir }}\
+          /doe-suite-config/roles/setup-base/setup-grow-rootfs.sh"
+      become: true
+    # TODO find way to make this not necessary
+    - name: Set hard max number of files for root 
+      ansible.builtin.lineinfile:
+         line: "root hard nofile 1048576"
+         path: "/etc/security/limits.conf"
+      become: true
+    - name: Set soft max number of files for root 
+      ansible.builtin.lineinfile:
+         line: "root soft nofile 1048576"
+         path: "/etc/security/limits.conf"
+      become: true 
+  when: extend_disk is defined
+
+- name: Ensure pkg-config is present
+  ansible.builtin.package:
+      name: pkg-config 
+      state: present
+  become: true
+  when: "not 'pkg-config' in ansible_facts.packages"
+
+- name: Ensure opennssl library is present
+  ansible.builtin.package:
+      name: libssl-dev
+      state: present
+  become: true
+  when: "not 'libssl-dev' in ansible_facts.packages"
+
+- name: Ensure cargo is present
+  block:
+      - name: Check for cargo
+        # using which, since cargo may not be installed from script
+        ansible.builtin.shell: 
+          cmd: "bash -l -c ''\"cargo --version\"''"
+  rescue:
+      - name: Install rustup
+        ansible.builtin.shell:
+          cmd: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y" 
+      - name: Rustup install cargo
+        ansible.builtin.shell:
+          cmd: "bash -l -c ''\"rustup default 1.82.0\"''"
+
+- name: Create bin dir
+  ansible.builtin.file:
+      path: "{{ remote.dir + '/bin'}}"
+      state: "directory"
+
+- name: clone dandelion
+  ansible.builtin.git:
+      repo: "{{ dandelion.url }}"
+      dest: "{{ dandelion.dir }}"
+      accept_hostkey: yes
+      force: yes
+      version: "{{ dandelion.version }}"
+  environment:
+      GIT_SSH_COMMAND: "{{ git_ssh_command | default('ssh') }}"
+
+- name: TCP Reuse
+  block:
+      - name: TCP Reuse (check)
+        ansible.builtin.shell:
+            cmd: "sysctl net.ipv4.tcp_tw_reuse"
+        register: sysctl_tcp_tw_reuse
+      - name: TCP (check)
+        ansible.builtin.shell:
+            cmd: "sysctl -w net.ipv4.tcp_tw_reuse=1"
+        become: true
+        when: sysctl_tcp_tw_reuse.stdout != "net.ipv4.tcp_tw_reuse = 1"
+  
+- name: Network conntrack max
+  block:
+      - name: Network conntrack max (check)
+        ansible.builtin.shell:
+            cmd: "sysctl net.nf_conntrack_max"
+        register: sysctl_nf_conntrack_max
+      - name: Network conntrack max (set)
+        ansible.builtin.shell:
+            cmd: "sysctl -w net.nf_conntrack_max=2000500"
+        become: true
+        when: sysctl_nf_conntrack_max.stdout != "net.nf_conntrack_max = 2000500"
+  rescue: 
+      - name: Network conntrack max recover (modprobe)
+        ansible.builtin.shell:
+          cmd: "modprobe ip_conntrack"
+        become: true
+      - name: Network conntrack max recover (retry check)
+        ansible.builtin.shell:
+            cmd: "sysctl net.nf_conntrack_max"
+        register: sysctl_nf_conntrack_max
+      - name: Network conntrack max recover (retry set)
+        ansible.builtin.shell:
+            cmd: "sysctl -w net.nf_conntrack_max=2000500"
+        become: true
+        when: sysctl_nf_conntrack_max.stdout != "net.nf_conntrack_max = 2000500"
+
+- name: Ensure cpufreq utils is present
+  ansible.builtin.package:
+      name: cpufrequtils
+      state: present
+  become: true
+  when: "not 'cpufrequtils' in ansible_facts.packages"
+
+- name: Disable frequency scaling
+  include_tasks: cpu_freq.yml
+  loop: "{{ range(0,ansible_processor_vcpus) | list }}"

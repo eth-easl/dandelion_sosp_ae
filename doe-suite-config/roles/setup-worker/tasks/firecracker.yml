@@ -1,0 +1,193 @@
+
+    # for if we want to build the kernel ourselfs
+    # - name: build vm image (clone linux)
+    #   ansible.builtin.git:
+    #     repo: "{{ linux.url }}"
+    #     dest: "{{ linux.dir }}"
+    #     accept_hostkey: yes
+    #     force: yes
+    #     version: "{{ linux.version }}"
+    #   environment:
+    #     GIT_SSH_COMMAND: "{{ git_ssh_command | default('ssh') }}"
+
+- name: Ensure KVM is present
+  ansible.builtin.package:
+    name: qemu-system-x86
+    state: present
+  become: true
+  when: "not 'qemu-system-x86' in ansible_facts.packages"
+
+- name: Get user Groups
+  ansible.builtin.shell:
+    cmd: "groups"
+  register: user_groups
+
+- name: Ensure user is in KVM group
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    append: true
+    groups: "kvm"
+  become: true
+  when: "not 'kvm' in user_groups"
+
+- name: prepare kernel image (download) 
+  ansible.builtin.get_url:
+    url: "https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/{{ansible_architecture}}/kernels/vmlinux.bin"
+    dest: "{{ firecracker.kernel_path }}"
+
+- name: check if vm image is present
+  stat:
+    path: "{{ firecracker.rootfs_path }}"
+  register: stat_rootfs
+
+- name: prepare vm image
+  block:
+    - name: prepare vm image (build application without timestamps)
+      ansible.builtin.shell:
+        chdir: "{{ experiment_dir + '/servers/baremetal' }}"
+        cmd: "RUSTFLAGS='-C target-feature=+crt-static' bash -l -c ''\"cargo build --release --features middleware,register --target $(uname -m)-unknown-linux-gnu\"''"
+    - name: prepare vm image (move application)
+      ansible.builtin.copy:
+        src: "{{ experiment_dir + '/servers/baremetal/target/' + ansible_architecture + '-unknown-linux-gnu/release/native' }}"
+        dest: "{{ experiment_dir + '/servers/firecracker/app' }}"
+        remote_src: true
+    - name: prepare vm image (create rootfs)
+      ansible.builtin.file:
+        path: "{{ firecracker.rootfs_path }}"
+        state: "touch"
+    - name: prepare vm image (fill rootfs with 0s) 
+      ansible.builtin.shell:
+        cmd: "dd if=/dev/zero of={{ firecracker.rootfs_path }} bs=1M count=128 && \ 
+              mkfs.ext4 {{ firecracker.rootfs_path }}"
+    - name: prepare vm image (create tmp rootfs)
+      ansible.builtin.file:
+        path: /tmp/rootfs.ext4
+        state: directory 
+    - name: prepare vm image (mount tmp rootfs)
+      become: yes
+      ansible.posix.mount:
+        src: "{{ firecracker.rootfs_path }}"
+        path: /tmp/rootfs.ext4
+        fstype: ext4
+        state: ephemeral
+    - name: give user ownership of image
+      become: yes
+      ansible.builtin.file:
+        path: /tmp/rootfs.ext4
+        owner: "{{ ansible_facts.user_id }}"
+    - name: make sure docker is running (non root docker)
+      ansible.builtin.shell:
+        cmd: systemctl --user start docker
+      when: non_root_docker is defined
+    - name: make sure docker is running (root docker)
+      ansible.builtin.shell:
+        cmd: systemctl start docker
+      become: true
+      when: not non_root_docker is defined
+    - name: prepare vm image (initialize rootfs)
+      become: yes
+      ansible.builtin.shell:
+        cmd: "{% if non_root_docker is defined %}
+              DOCKER_HOST=unix:///run/user/{{ansible_facts.user_uid}}/docker.sock \
+              {% endif %}
+              docker run -i --rm \
+              -v /tmp/rootfs.ext4:/rootfs \
+              -v {{ experiment_dir + '/servers/firecracker/app' }}:/usr/local/bin/agent \
+              -v {{ experiment_dir + '/servers/firecracker/image/openrc-service.sh' }}:/etc/init.d/agent \
+              {% if http_proxy is defined %}
+              -e http_proxy={{ http_proxy }} -e https_proxy={{ http_proxy }} \
+              {% endif %}
+              alpine sh < {{ experiment_dir + '/servers/firecracker/image/setup-alpine.sh' }}"
+    - name: prepare vm image (change ownership of service uid)
+      become: yes
+      ansible.builtin.file:
+        path: "{{ experiment_dir + '/servers/firecracker/image/openrc-service.sh' }}"
+        owner: "{{ ansible_user_uid }}"
+        group: "{{ ansible_user_gid }}"
+    - name: prepare vm image (make sure user owns rootfs)
+      become: yes
+      ansible.builtin.file:
+        path: "{{ firecracker.rootfs_path }}"
+        owner: "{{ ansible_user_uid }}"
+  when: not stat_rootfs.stat.exists
+  always:
+    - name: prepare vm image (unmount tmp rootfs)
+      become: yes
+      ansible.posix.mount:
+        path: /tmp/rootfs.ext4
+        state: unmounted
+    - name: prepare vm image (clean up tmp rootfs)
+      become: yes
+      ansible.builtin.file:
+        path: "/tmp/rootfs.ext4"
+        state: absent
+  rescue:
+    - name: prepare vm image (remove non finished rootfs)
+      become: yes
+      ansible.builtin.file:
+        path: "{{ firecracker.rootfs_path}}"
+        state: absent
+    - debug:
+        msg: Firecracker vm image setup failed
+      failed_when: true
+
+- name: check for firecracker
+  stat:
+    path: "{{ firecracker.fc_bin }}"
+  register: stat_firecracker
+
+- name: prepare firecracker
+  block:
+  - name: prepare firecracker (download)
+    ansible.builtin.get_url:
+      url: "https://github.com/firecracker-microvm/firecracker/releases/download/{{firecracker_version}}/firecracker-{{firecracker_version}}-{{ansible_architecture}}.tgz"
+      dest: "{{ firecracker_dir + '.tgz' }}" 
+  - name: prepare firecracker (create directory)
+    ansible.builtin.file:
+      path: "{{ firecracker_dir }}"
+      state: directory
+  - name: prepare firecracker (unpack)
+    ansible.builtin.shell:
+      cmd: "tar -xf {{ firecracker_dir + '.tgz' }} -C {{ firecracker_dir }} --strip-components 1"
+  - name: prepare firecracker (move)
+    become: true
+    ansible.builtin.copy:
+      src: "{{ firecracker_dir }}/firecracker-{{ firecracker_version }}-{{ ansible_architecture }}"
+      dest: "{{ firecracker.fc_bin }}"
+      remote_src: true
+      owner: 'root'
+      group: 'kvm'
+      mode: 'u=rxs,g=rx'
+  when: not stat_firecracker.stat.exists
+
+- name: build firecracker frontend
+  import_tasks: ../cargo_build.yml
+  vars:
+    output_path: "{{ firecracker.frontend_bin }}"
+    source_dir: "{{ experiment_dir + '/servers/firecracker/frontend' }}"
+    binary_name: "main"
+
+# - name: setup CNI
+#   block:
+#     - name: setup CNI (download)
+#       ansible.builtin.get_url:
+#         url: "https://github.com/containernetworking/plugins/releases/download/{{cni_version}}/cni-plugins-linux-{{arch_dict[ansible_architecture]}}-{{cni_version}}.tgz"
+#         dest: "{{ cni_dir + '.tgz' }}"
+#     - name: setup CNI (create directory)
+#       ansible.builtin.file:
+#         path: "{{ cni_dir }}"
+#         state: directory
+#     - name: setup CNI (unpack)
+#       ansible.builtin.shell:
+#         cmd: "tar -zxvf {{ cni_dir + '.tgz' }} -C {{ cni_dir }} ./host-local ./ptp --strip-components 1"
+#     - name: setup cni (ensure target dir exists)
+#       ansible.builtin.file:
+#         path: "/opt/cni/bin"
+#         state: directory
+#       become: true
+#     - name: setup CNI (move to bin)
+#       ansible.builtin.copy:
+#         src: "{{ cni_dir }}"
+#         dest: "/opt/cni/bin"
+#         remote_src: true
+#       become: true

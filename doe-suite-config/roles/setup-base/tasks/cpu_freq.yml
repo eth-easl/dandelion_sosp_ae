@@ -1,0 +1,31 @@
+- name: Check current settings
+  ansible.builtin.shell:
+    cmd: "cpufreq-info -c {{ item }} -p"
+  register: cpu_freq_state
+  changed_when: "'performance' not in cpu_freq_state.stdout"
+  when: "'aarch64' not in ansible_architecture"
+- name: Set frequency settings
+  ansible.builtin.shell:
+    cmd: "cpufreq-set -c {{ item }} -g performance"
+  become: true
+  when: "'aarch64' not in ansible_architecture and 'performance' not in cpu_freq_state.stdout"
+- name: Check cpu idle governor
+  ansible.builtin.shell:
+    cmd: "cat /sys/devices/system/cpu/cpuidle/current_governor"
+  register: cpu_idle_governor
+  changed_when: "'ladder' not in cpu_idle_governor.stdout"
+- name: Set idle governor ladder
+  ansible.builtin.shell: 
+    cmd: "sh -c 'echo \"ladder\" > \"/sys/devices/system/cpu/cpuidle/current_governor\"'"
+  become: true
+  when: "'ladder' not in cpu_idle_governor.stdout"
+- name: Check if lowest cpu idle is disabled
+  ansible.builtin.shell:
+    cmd: "cat /sys/devices/system/cpu/cpu{{ item }}/cpuidle/state0/disable"
+  register: cpu_idle_state
+  changed_when: "'1' not in cpu_idle_state.stdout"
+- name: Disable lowest cpu idle to disable all with ladder
+  ansible.builtin.shell:
+    cmd: "sh -c 'echo \"1\" > \"/sys/devices/system/cpu/cpu{{item}}/cpuidle/state0/disable\"'"
+  become: true
+  when: "'1' not in cpu_idle_state.stdout"

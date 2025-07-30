@@ -1,0 +1,65 @@
+- name: Install docker
+  block:
+  - name: Install aptitude for ansible key management
+    ansible.builtin.apt:
+      name: aptitude
+      state: latest
+      update_cache: true
+    become: true
+
+  - name: Install system packages
+    ansible.builtin.apt:
+      pkg:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+      state: present
+    become: true
+
+  - name: Add Docker GPG apt Key
+    ansible.builtin.apt_key:
+      data: "{{ lookup('url', 'https://download.docker.com/linux/ubuntu/gpg', split_lines=False) }}"
+      state: present
+    become: true
+
+  - name: Add Docker Repository
+    ansible.builtin.apt_repository:
+      repo: deb http://download.docker.com/linux/ubuntu focal stable
+      state: present
+    become: true
+    
+  - name: Update apt and install docker-ce
+    ansible.builtin.apt:
+      name: docker-ce
+      state: present
+    become: true 
+  when: "not 'docker-ce' in ansible_facts.packages"
+
+- name: Check for Docker proxy settings
+  ansible.builtin.stat:
+    path: "/etc/systemd/system/docker.service.d/http-proxy.conf"
+  register: http_proxy_check
+  when: http_proxy is defined
+
+- name: Setup Docker proxy settings
+  block:
+    - name: Setup Docker proxy settings (create folder)
+      ansible.builtin.file:
+        path: "/etc/systemd/system/docker.service.d"
+        state: directory
+      become: true 
+    - name: Setup Docker proxy settings (install settings on server)
+      ansible.builtin.template:
+        dest: "{{ experiment_dir }}/http-proxy.conf" 
+        src: "{{ role_path }}/proxy_template.j2"
+    - name: Copy proxy settings to system folder
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/docker.service.d/http-proxy.conf" 
+        src: "{{ experiment_dir }}/http-proxy.conf" 
+        remote_src: true
+      become: true
+    - name: Setup Docker proxy settings (restart docker)
+      ansible.builtin.shell:
+        cmd: "systemctl daemon-reload && systemctl restart docker"
+      become: true
+  when: http_proxy is defined and not http_proxy_check.stat.exists

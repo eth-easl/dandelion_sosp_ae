@@ -1,0 +1,36 @@
+---
+
+dummy:
+  n_repetitions: 1 # no repetition
+  common_roles: setup-base
+  host_types:
+    loader:
+      n: 1
+      init_roles: setup-loader
+      $CMD$: "echo loader_test"
+    worker:
+      n: 1
+      init_roles: setup-worker
+      $CMD$: "echo worker_test"
+  base_experiment:
+    fine: "100"
+
+# -> can add other experiments here
+
+
+$ETL$:
+  pipeline1: # pipeline_name
+    experiments: "*" # or "*" for all experiments
+    extractors:
+      CsvExtractor: {}
+      ErrorExtractor: {} # raise error on unexpected, non-empty file
+      IgnoreExtractor: {} # expect and ignore stdout.log
+    transformers: []
+    #  - df.filter: {items: ["exp_name", "x", "y"]}
+    #  - name: RepAggTransformer
+    #    data_columns: [latency]
+    loaders:
+      CsvSummaryLoader:
+        skip_empty: True 
+
+  # -> can add other pipelines here

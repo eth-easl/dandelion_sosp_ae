@@ -1,0 +1,22 @@
+[package]
+name = "middleware"
+authors = ["Yazhuo Zhang <z.yazhuo@gmail.com>"]
+description = ""
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "1"
+spin-sdk = "3.1.0"
+bson = "2.0"
+http = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_bytes = "0.11"
+serde_json = "1.0"
+futures = "0.3.29"
+reqwest = { version = "0.12", default-features = false }
+
+[workspace]

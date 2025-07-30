@@ -1,0 +1,22 @@
+- name: cargo build
+  block:
+    - name: remove old binary 
+      ansible.builtin.file:
+        path: "{{ output_path }}"
+        state: absent
+    - name: build binary
+      ansible.builtin.shell:
+        chdir: "{{ source_dir }}"
+        cmd: "bash -l -c ''\"cargo build --release {{ features | default('') }}\"''"
+      environment:
+        - CARGO_TARGET_DIR: "{{ build_dir | default(source_dir+'/target') }}"
+        - RUSTFLAGS: "{{ rustflags | default('') }}"
+        - CC: "{{ cc | default('') }}"
+        - CXX: "{{ cxx | default('') }}"
+        - LD: "{{ ld | default('') }}"
+    - name: copy binary
+      ansible.builtin.copy:
+        src: "{{ build_dir | default(source_dir + '/target') }}/{{ target_dir | default('.') }}/release/{{ binary_name }}"
+        dest: "{{ output_path }}"
+        remote_src: true
+        mode: 'preserve'

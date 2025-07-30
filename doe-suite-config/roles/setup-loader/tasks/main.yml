@@ -1,0 +1,16 @@
+---
+
+- name: build loader
+  import_tasks: ../cargo_build.yml
+  vars:
+    output_path: "{{ loader_bin }}"
+    source_dir: "{{ experiment_dir + '/client' }}"
+    binary_name: "rload"
+
+
+- name: build http storage
+  import_tasks: ../cargo_build.yml
+  vars:
+    output_path: "{{ http_storage_bin }}"
+    source_dir: "{{ experiment_dir + '/http_storage' }}"
+    binary_name: "http_storage"

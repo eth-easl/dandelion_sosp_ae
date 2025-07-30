@@ -1,0 +1,69 @@
+spin_manifest_version = 2
+
+[application]
+name = "wasmtime"
+version = "0.1.0"
+authors = ["Yazhuo Zhang <z.yazhuo@gmail.com>"]
+description = ""
+
+[[trigger.http]]
+route = "/hot/matmul"
+component = "matmul"
+
+[[trigger.http]]
+route = "/cold/matmul"
+component = "matmul"
+
+[component.matmul]
+source = "matmul/matmul.wasm"
+allowed_outbound_hosts = []
+
+[[trigger.http]]
+route = "/"
+component = "check"
+
+[component.check]
+source = "check/check.wasm"
+allowed_outbound_hosts = []
+
+[[trigger.http]]
+route = "/hot/chain_scaling_dedicated"
+component = "chainscaling"
+
+[[trigger.http]]
+route = "/cold/chain_scaling_dedicated"
+component = "chainscaling"
+
+[component.chainscaling]
+source = "chainscaling/chainscaling.wasm"
+allowed_outbound_hosts = ["http://127.0.0.1:8000", "http://10.233.0.10:8000", "http://10.233.0.12:8000", "http://10.233.0.14:8000", "http://10.233.0.19:8000"]
+
+[[trigger.http]]
+route = "/hot/middleware_app"
+component = "middleware"
+
+[[trigger.http]]
+route = "/cold/middleware_app"
+component = "middleware"
+
+[component.middleware]
+source = "middleware/middleware.wasm"
+allowed_outbound_hosts = ["http://127.0.0.1:8000", "http://10.233.0.10:8000", "http://10.233.0.12:8000", "http://10.233.0.14:8000", "http://10.233.0.19:8000"]
+
+[variables]
+storage_ip = { default = "127.0.0.1:8000" }
+
+[component.middleware.variables]
+storage_ip = "{{ storage_ip }}"
+
+[[trigger.http]]
+route = "/hot/compression_app"
+component = "compression"
+
+[[trigger.http]]
+route = "/cold/compression_app"
+component = "compression"
+
+[component.compression]
+source = "compression/compression.wasm"
+allowed_outbound_hosts = []

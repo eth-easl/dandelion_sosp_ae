@@ -1,0 +1,20 @@
+[package]
+name = "rload"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", default-features = false }
+bytes = "1.6.0"
+rand = "0.8"
+clap = { version = "4", features = ["derive"] }
+log = {version = "0.4", features = ["release_max_level_warn"]}
+env_logger = "0.11"
+byteorder = "1.5"
+serde = "1.0.197"
+serde_bytes = "0.11"
+bson = "2.9.0"
+csv = "1"
