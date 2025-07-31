@@ -3,7 +3,6 @@ Originally we ran our experiments on internal servers, but have ported them to c
 Consequently you will need a cloudlab account to get access to the resources.
 
 Clone the [experiment repository](https://github.com/eth-easl/dandelion_sosp_ae).
-If you clone the base repository, make sure to check out the branch `sosp25`.
 Also make sure you clone recursively, as we depend on the doe-suite for running our experiments.
 
 ```
@@ -31,10 +30,20 @@ ssh-add ~/.ssh/<your git/cloudlabl key>
 To run the `doe-suite` you need python3, poetry, cookiecutter, and make installed as well as ssh set up. 
 We recommend getting python3, make and pip through the package manager and then installing poetry and cookiecutter via:
 ```
+python3 -m pip install --user pipx
 pipx install poetry
 pipx install cookiecutter
+pipx ensurepath
 ```
 For additional information on the suite, documentation and setup instructions can be found [here](https://nicolas-kuechler.github.io/doe-suite/installation.html)
+
+## Notes:
+
+The original measuremnts were taken on machines with the following spec:
+
+Ubuntu 22.04.5 LTS with the 5.15.0-136-generic Kernel
+CPU: Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz, Hyperthreading disabled
+NIC: Mellanox ConnectX-3 (MT27500)
 
 # Running experiments for figures 6 & 8
 
@@ -74,6 +83,8 @@ For the experiment in figure 8 run the command:
 make run suite=mixed_workload_sosp id=new cloud=cloudlab
 ```
 
+The progress bars should look the same as for the experiment above, but it does finish much faster.
+
 ## Creating the plots
 
 Once all the data is collected, there should be a folder called `doe-suite-results`.
@@ -85,3 +96,6 @@ Once that is done, execute the following command in the `doe-suite` folder:
 ```
 make etl-super config=SOSP_plots
 ```
+
+To only produce one of the plots, you can comment out the parts relating to the other plot.
+(This includes the line with suite id as well as the block containing the experiemnts, extractors, transformers and loaders)
