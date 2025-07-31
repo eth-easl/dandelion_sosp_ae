@@ -7,7 +7,7 @@ You only need a readonly key for public GitHub repositories: to add one, you can
 Make sure your ssh agent is running and has access to this ssh key.
 
 We recommend Ubuntu 22.04: its apt repos still have python3.10 available, which is required by one of the dependencies.
-If you are not on Ubuntu 22.04, you can use a [container](container.md).
+If you are not on Ubuntu 22.04, you can use a [container](container.md): if you do so, follow the instructions there, then continue from "Running experiments".
 
 Start it:
 ```
