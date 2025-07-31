@@ -2,16 +2,19 @@
 Originally we ran our experiments on internal servers, but have ported them to cloudlab, so evaluators can rerun them more easily.
 Consequently you will need a [cloudlab](https://www.cloudlab.us/) account to get access to the resources.
 
+Our setup requires that the ssh key for GitHub and Cloudlab are the same.
+You only need a readonly key for public GitHub repositories: to add one, you can add it as a deploy key to a temporary repository, it will also allow pulling from public GitHub repositories. Detailed instructions are available [here](key.md).
+Make sure your ssh agent is running and has access to this ssh key.
+
 We recommend Ubuntu 22.04: its apt repos still have python3.10 available, which is required by one of the dependencies.
 
-Our setup requires that the ssh key for GitHub and Cloudlab are the same. You only need a readonly key for public GitHub repositories: to add one, you can add it as a deploy key to a temporary repository, it will also allow pulling from public GitHub repositories. Make sure your ssh agent is running and has access to this ssh key.
 Start it:
 ```
 eval "$(ssh-agent -s)"
 ```
 and add your key:
 ```
-ssh-add ~/.ssh/<your github and cloudlab private key>
+ssh-add <your github and cloudlab private key>
 ```
 
 Then clone the [experiment repository](https://github.com/eth-easl/dandelion_sosp_ae).
@@ -26,7 +29,7 @@ For this run the following commands in the repository's root directory:
 ```
 export DOES_PROJECT_DIR=$(pwd)
 export DOES_PROJECT_ID_SUFFIX="eval"
-export DOES_SSH_KEY_NAME=<path to your private key for cloudlab>
+export DOES_SSH_KEY_NAME=<path to your private key>
 ```
 
 To run the `doe-suite` you need python3.9 or python3.10, poetry, cookiecutter, ssh client and make installed.
