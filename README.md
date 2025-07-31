@@ -1,20 +1,18 @@
 # Setup
 Originally we ran our experiments on internal servers, but have ported them to cloudlab, so evaluators can rerun them more easily.
-Consequently you will need a cloudlab account to get access to the resources.
+Consequently you will need a [cloudlab](https://www.cloudlab.us/) account to get access to the resources.
 
 We recommend Ubuntu 22.04: its apt repos still have python3.10 available, which is required by one of the dependencies.
 If you are not on Ubuntu 22.04, you can use a [container](container.md).
 
-Make sure your ssh agent is running and has access to your ssh keys.
+Our setup requires that the ssh key for GitHub and Cloudlab are the same. You only need a readonly key for public GitHub repositories: to add one, you can add it as a deploy key to a temporary repository, it will also allow pulling from public GitHub repositories. Make sure your ssh agent is running and has access to this ssh key.
 Start it:
 ```
 eval "$(ssh-agent -s)"
 ```
-
-and add your key(s):
+and add your key:
 ```
-ssh-add ~/.ssh/<your github private key>
-ssh-add ~/.ssh/<your cloudlab private key> # if different
+ssh-add ~/.ssh/<your github and cloudlab private key>
 ```
 
 Then clone the [experiment repository](https://github.com/eth-easl/dandelion_sosp_ae).
@@ -37,15 +35,15 @@ To run the `doe-suite` you need python3.9 or python3.10, poetry, cookiecutter, s
 We recommend getting python3, make and pip through the package manager and then installing poetry and cookiecutter via:
 ```
 python3 -m pip install --user pipx
+~/.local/bin/pipx ensurepath
 pipx install poetry
 pipx install cookiecutter
-pipx ensurepath
 ```
 For additional information on the suite, documentation and setup instructions can be found [here](https://nicolas-kuechler.github.io/doe-suite/installation.html)
 
 ## Notes:
 
-The original measuremnts were taken on machines with the following spec:
+The original measurements were taken on machines with the following spec:
 
 Ubuntu 22.04.5 LTS with the 5.15.0-136-generic Kernel
 CPU: Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz, Hyperthreading disabled
@@ -55,8 +53,11 @@ NIC: Mellanox ConnectX-3 (MT27500)
 
 On cloudlab, create an experiment with the `multi_node_profile`, `UBUNTU22-64-STD` image and 2 hardware nodes of type `d430` available in `Emulab`.
 
-In `doe-suite-config/inventory/cloudlab.yml` you need to replace the two placeholders with the URIs of the servers.
-Make sure to use the uri of node 0 is the loader and node 1 is the worker, so the IPs they use to address each other are correct.
+In `doe-suite-config/inventory/cloudlab.yml` you need to replace the two placeholders with the URIs of the servers:
+you can find these in the cloudlab experiment UI, by selecting "List View" and copying the two URIs after the `@` from the ssh commands;
+for example if you see `ssh user@pc778.emulab.net` and `ssh user@pc770.emulab.net` you will need to replace the two `<server url here>` placeholders with
+`pc778.emulab.net` and `pc770.emulab.net` respectively.
+Make sure to use the URI of node 0 as the loader and the URI of node 1 as the worker, so that the IPs they use to address each other are correct.
 
 Additionally in the `doe-suite/ansible.cfg` add a additional line at the bottom (under `ssh_connection`):
 ```
