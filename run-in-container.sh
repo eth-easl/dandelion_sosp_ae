@@ -11,11 +11,13 @@ apt install -y \
   build-essential \
   git \
   python3-pip \
-  python3-venv
+  python3-venv \
+  vim-nox \
+  nano
 
 python3 -m pip install --user pipx
 ~/.local/bin/pipx ensurepath
-. ~/.bashrc
+export PATH="$PATH:/root/.local/bin"
 pipx install poetry
 pipx install cookiecutter
 

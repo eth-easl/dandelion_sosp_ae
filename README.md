@@ -61,8 +61,10 @@ you can find these in the cloudlab experiment UI, by selecting "List View" and c
 for example if you see `ssh user@pc778.emulab.net` and `ssh user@pc770.emulab.net` you will need to replace the two `<server url here>` placeholders with
 `pc778.emulab.net` and `pc770.emulab.net` respectively.
 Make sure to use the URI of node 0 as the loader and the URI of node 1 as the worker, so that the IPs they use to address each other are correct.
+(If you are in the container you can use `vim` or `nano`, or you can install a different editor with `apt`.)
 
 Additionally in the `doe-suite/ansible.cfg` add a additional line at the bottom (under `ssh_connection`):
+(this step has already been performed if you used the container set-up)
 ```
 retries = 10
 ```
