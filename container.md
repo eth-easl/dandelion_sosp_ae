@@ -1,6 +1,6 @@
 To follow these steps, you need a container runtime like docker.
 
-Start a container and bind-mount your GitHub and CloudLab key, to have access to your keys:
+Start a container and bind-mount the directory with you GitHub (deploy) key and CloudLab key (see the note in [README.md](README.md) on how to set up a key):
 
 ```
 docker run -it --rm --mount type=bind,src=<path to key directory on host>,dst=/root/keys,ro ubuntu:22.04 bash
@@ -18,3 +18,10 @@ cd dandelion_sosp_ae
 bash run-in-container.sh
 ```
 
+then
+
+```
+export DOES_PROJECT_DIR=$(pwd)
+export DOES_PROJECT_ID_SUFFIX="eval"
+export DOES_SSH_KEY_NAME=/root/keys/<path to private key>
+```

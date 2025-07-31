@@ -7,8 +7,7 @@ cd /root
 apt update
 apt install -y \
   python3.10 \
-  ssh \
-  ssh-agent \
+  openssh-client \
   build-essential \
   git \
   python3-pip \
@@ -16,12 +15,10 @@ apt install -y \
 
 python3 -m pip install --user pipx
 ~/.local/bin/pipx ensurepath
+. ~/.bashrc
 pipx install poetry
 pipx install cookiecutter
 
 cd dandelion_sosp_ae
-export DOES_PROJECT_DIR=$(pwd)
-export DOES_PROJECT_ID_SUFFIX="eval"
-export DOES_SSH_KEY_NAME=/root/keys/<path to private key>
 echo >> doe-suite/ansible.cfg
 echo "retries = 10" >> doe-suite/ansible.cfg
