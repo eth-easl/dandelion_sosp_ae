@@ -45,11 +45,8 @@ load_latency: # collect data for a load latency plot
         $INCLUDE_VARS$: general.yml
         server:
             $FACTOR$:
-                # - dedicated
-                - wasmtime
                 - dandelion_process
-                # - dandelion_kvm
-                # - firecracker
+                - wasmtime
                 - firecracker_snapshot
         control_kp: 0.008
         control_ki: 0.002

@@ -1,15 +1,4 @@
 
-    # for if we want to build the kernel ourselfs
-    # - name: build vm image (clone linux)
-    #   ansible.builtin.git:
-    #     repo: "{{ linux.url }}"
-    #     dest: "{{ linux.dir }}"
-    #     accept_hostkey: yes
-    #     force: yes
-    #     version: "{{ linux.version }}"
-    #   environment:
-    #     GIT_SSH_COMMAND: "{{ git_ssh_command | default('ssh') }}"
-
 - name: Ensure KVM is present
   ansible.builtin.package:
     name: qemu-system-x86
@@ -166,28 +155,3 @@
     output_path: "{{ firecracker.frontend_bin }}"
     source_dir: "{{ experiment_dir + '/servers/firecracker/frontend' }}"
     binary_name: "main"
-
-# - name: setup CNI
-#   block:
-#     - name: setup CNI (download)
-#       ansible.builtin.get_url:
-#         url: "https://github.com/containernetworking/plugins/releases/download/{{cni_version}}/cni-plugins-linux-{{arch_dict[ansible_architecture]}}-{{cni_version}}.tgz"
-#         dest: "{{ cni_dir + '.tgz' }}"
-#     - name: setup CNI (create directory)
-#       ansible.builtin.file:
-#         path: "{{ cni_dir }}"
-#         state: directory
-#     - name: setup CNI (unpack)
-#       ansible.builtin.shell:
-#         cmd: "tar -zxvf {{ cni_dir + '.tgz' }} -C {{ cni_dir }} ./host-local ./ptp --strip-components 1"
-#     - name: setup cni (ensure target dir exists)
-#       ansible.builtin.file:
-#         path: "/opt/cni/bin"
-#         state: directory
-#       become: true
-#     - name: setup CNI (move to bin)
-#       ansible.builtin.copy:
-#         src: "{{ cni_dir }}"
-#         dest: "/opt/cni/bin"
-#         remote_src: true
-#       become: true
