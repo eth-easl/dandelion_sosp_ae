@@ -54,7 +54,10 @@ NIC: Mellanox ConnectX-3 (MT27500)
 
 On cloudlab, create an experiment with the `multi_node_profile`, `UBUNTU22-64-STD` image and 2 hardware nodes of type `d430` available in `Emulab`.
 
-In `doe-suite-config/inventory/cloudlab.yml` you need to replace the two placeholders with the URIs of the servers.
+In `doe-suite-config/inventory/cloudlab.yml` you need to replace the two placeholders with the URIs of the servers:
+you can find these in the cloudlab experiment UI, by selecting "List View" and copying the two URIs after the `@` from the ssh commands;
+for example if you see `ssh user@pc778.emulab.net` and `ssh user@pc770.emulab.net` you will need to replace the two `<server url here>` placeholders with
+`pc778.emulab.net` and `pc770.emulab.net` respectively.
 Make sure to use the uri of node 0 is the loader and node 1 is the worker, so the IPs they use to address each other are correct.
 
 Additionally in the `doe-suite/ansible.cfg` add a additional line at the bottom (under `ssh_connection`):
