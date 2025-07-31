@@ -2,32 +2,37 @@
 Originally we ran our experiments on internal servers, but have ported them to cloudlab, so evaluators can rerun them more easily.
 Consequently you will need a cloudlab account to get access to the resources.
 
-Clone the [experiment repository](https://github.com/eth-easl/dandelion_sosp_ae).
-Also make sure you clone recursively, as we depend on the doe-suite for running our experiments.
+We recommend Ubuntu 22.04: its apt repos still have python3.10 available, which is required by one of the dependencies.
 
+Make sure your ssh agent is running and has access to your ssh keys.
+Start it:
+```
+eval "$(ssh-agent -s)"
+```
+
+and add your key(s):
+```
+ssh-add ~/.ssh/<your github private key>
+ssh-add ~/.ssh/<your cloudlab private key> # if different
+```
+
+Then clone the [experiment repository](https://github.com/eth-easl/dandelion_sosp_ae).
+`--recurse-submodules` clones git submodules recursively; this is needed because we depend on the [doe-suite](https://nicolas-kuechler.github.io/doe-suite) for running our experiments.
 ```
 git clone --recurse-submodules https://github.com/eth-easl/dandelion_sosp_ae
 cd dandelion_sosp_ae
 ```
 
-The `doe-suite` relies on a few environment variables to be set, that need to be set before any experiment can be started.
-For this run the following commands in the repositories root directory:
+The `doe-suite` relies on a few environment variables to be set before any experiment can be started.
+For this run the following commands in the repository's root directory:
 ```
 export DOES_PROJECT_DIR=$(pwd)
 export DOES_PROJECT_ID_SUFFIX="eval"
-export DOES_SSH_KEY_NAME=<path to your ssh key for cloudlab>
-```
-You should also make sure your ssh agent is running and has access to your ssh keys.
-For that you can run:
-```
-eval "$(ssh-agent -s)"
-```
-To start it and to add your key:
-```
-ssh-add ~/.ssh/<your git/cloudlabl key>
+export DOES_SSH_KEY_NAME=<path to your private key for cloudlab>
 ```
 
-To run the `doe-suite` you need python3, poetry, cookiecutter, and make installed as well as ssh set up. 
+To run the `doe-suite` you need python3.9 or python3.10, poetry, cookiecutter, ssh client and make installed.
+
 We recommend getting python3, make and pip through the package manager and then installing poetry and cookiecutter via:
 ```
 python3 -m pip install --user pipx
@@ -57,7 +62,7 @@ Additionally in the `doe-suite/ansible.cfg` add a additional line at the bottom 
 retries = 10
 ```
 
-To rerun the experiments for figure 6 in the paper, run the following command in the `does-suite` folder:
+To rerun the experiments for figure 6 in the paper, run the following command in the `doe-suite` folder:
 ```
 make run suite=load_latency_matmul id=new cloud=cloudlab
 ```
