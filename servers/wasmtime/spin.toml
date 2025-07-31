@@ -48,10 +48,10 @@ component = "middleware"
 
 [component.middleware]
 source = "middleware/middleware.wasm"
-allowed_outbound_hosts = ["http://127.0.0.1:8000", "http://10.233.0.10:8000", "http://10.233.0.12:8000", "http://10.233.0.14:8000", "http://10.233.0.19:8000"]
+allowed_outbound_hosts = ["http://10.10.1.1:8000"]
 
 [variables]
-storage_ip = { default = "127.0.0.1:8000" }
+storage_ip = { default = "10.10.1.1:8000" }
 
 [component.middleware.variables]
 storage_ip = "{{ storage_ip }}"
