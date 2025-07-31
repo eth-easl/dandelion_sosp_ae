@@ -4,16 +4,14 @@ Consequently you will need a cloudlab account to get access to the resources.
 
 We recommend Ubuntu 22.04: its apt repos still have python3.10 available, which is required by one of the dependencies.
 
-Make sure your ssh agent is running and has access to your ssh keys.
+Our setup requires that the ssh key for GitHub and Cloudlab are the same. Make sure your ssh agent is running and has access to this ssh key.
 Start it:
 ```
 eval "$(ssh-agent -s)"
 ```
-
-and add your key(s):
+and add your key:
 ```
-ssh-add ~/.ssh/<your github private key>
-ssh-add ~/.ssh/<your cloudlab private key> # if different
+ssh-add ~/.ssh/<your github and cloudlab private key>
 ```
 
 Then clone the [experiment repository](https://github.com/eth-easl/dandelion_sosp_ae).
@@ -44,7 +42,7 @@ For additional information on the suite, documentation and setup instructions ca
 
 ## Notes:
 
-The original measuremnts were taken on machines with the following spec:
+The original measurements were taken on machines with the following spec:
 
 Ubuntu 22.04.5 LTS with the 5.15.0-136-generic Kernel
 CPU: Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz, Hyperthreading disabled
