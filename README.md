@@ -18,8 +18,22 @@ export DOES_PROJECT_DIR=$(pwd)
 export DOES_PROJECT_ID_SUFFIX="eval"
 export DOES_SSH_KEY_NAME=<path to your ssh key for cloudlab>
 ```
+You should also make sure your ssh agent is running and has access to your ssh keys.
+For that you can run:
+```
+eval "$(ssh-agent -s)"
+```
+To start it and to add your key:
+```
+ssh-add ~/.ssh/<your git/cloudlabl key>
+```
 
-To run the `doe-suite` you need python3 and make installed as well as ssh set up. 
+To run the `doe-suite` you need python3, poetry, cookiecutter, and make installed as well as ssh set up. 
+We recommend getting python3, make and pip through the package manager and then installing poetry and cookiecutter via:
+```
+pipx install poetry
+pipx install cookiecutter
+```
 For additional information on the suite, documentation and setup instructions can be found [here](https://nicolas-kuechler.github.io/doe-suite/installation.html)
 
 # Running experiments for figures 6 & 8
