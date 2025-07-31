@@ -3,6 +3,7 @@ Originally we ran our experiments on internal servers, but have ported them to c
 Consequently you will need a cloudlab account to get access to the resources.
 
 We recommend Ubuntu 22.04: its apt repos still have python3.10 available, which is required by one of the dependencies.
+If you are not on Ubuntu 22.04, you can use a [container](container.md).
 
 Make sure your ssh agent is running and has access to your ssh keys.
 Start it:
