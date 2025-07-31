@@ -36,9 +36,9 @@ To run the `doe-suite` you need python3.9 or python3.10, poetry, cookiecutter, s
 We recommend getting python3, make and pip through the package manager and then installing poetry and cookiecutter via:
 ```
 python3 -m pip install --user pipx
+~/.local/bin/pipx ensurepath
 pipx install poetry
 pipx install cookiecutter
-pipx ensurepath
 ```
 For additional information on the suite, documentation and setup instructions can be found [here](https://nicolas-kuechler.github.io/doe-suite/installation.html)
 
