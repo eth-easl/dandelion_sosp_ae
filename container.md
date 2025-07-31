@@ -23,6 +23,7 @@ bash run-in-container.sh
 then, check you are in the repository's root (`dandelion_sosp_ae`) and export the necessary environment variables (note: replace `<path to private key>` with the name of the private key):
 
 ```
+source ~/.bashrc
 export DOES_PROJECT_DIR=$(pwd)
 export DOES_PROJECT_ID_SUFFIX="eval"
 export DOES_SSH_KEY_NAME=/root/keys/<path to private key>
