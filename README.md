@@ -4,7 +4,7 @@ Consequently you will need a [cloudlab](https://www.cloudlab.us/) account to get
 
 We recommend Ubuntu 22.04: its apt repos still have python3.10 available, which is required by one of the dependencies.
 
-Our setup requires that the ssh key for GitHub and Cloudlab are the same. Make sure your ssh agent is running and has access to this ssh key.
+Our setup requires that the ssh key for GitHub and Cloudlab are the same. You only need a readonly key for public GitHub repositories: to add one, you can add it as a deploy key to a temporary repository, it will also allow pulling from public GitHub repositories. Make sure your ssh agent is running and has access to this ssh key.
 Start it:
 ```
 eval "$(ssh-agent -s)"
