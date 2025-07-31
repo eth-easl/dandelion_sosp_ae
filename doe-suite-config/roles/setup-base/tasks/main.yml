@@ -10,7 +10,7 @@
 
 - name: Clone the experiment repository
   ansible.builtin.git:
-      repo: git@github.com:eth-easl/dandelionExperiments.git
+      repo: git@github.com:eth-easl/dandelion_sosp_ae.git
       dest: "{{ experiment_dir }}"
       accept_hostkey: yes
       force: true
