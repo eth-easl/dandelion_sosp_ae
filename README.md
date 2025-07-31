@@ -2,13 +2,13 @@
 Originally we ran our experiments on internal servers, but have ported them to cloudlab, so evaluators can rerun them more easily.
 Consequently you will need a cloudlab account to get access to the resources.
 
-Clone the [experiment repository](https://github.com/eth-easl/dandelionExperiments/tree/sosp25/).
+Clone the [experiment repository](https://github.com/eth-easl/dandelion_sosp_ae).
 If you clone the base repository, make sure to check out the branch `sosp25`.
 Also make sure you clone recursively, as we depend on the doe-suite for running our experiments.
 
 ```
-git clone -b sosp25 --recurse-submodules https://github.com/eth-easl/dandelionExperiments 
-cd dandelionExperiments
+git clone --recurse-submodules https://github.com/eth-easl/dandelion_sosp_ae
+cd dandelion_sosp_ae
 ```
 
 The `doe-suite` relies on a few environment variables to be set, that need to be set before any experiment can be started.
@@ -22,7 +22,7 @@ export DOES_SSH_KEY_NAME=<path to your ssh key for cloudlab>
 To run the `doe-suite` you need python3 and make installed as well as ssh set up. 
 For additional information on the suite, documentation and setup instructions can be found [here](https://nicolas-kuechler.github.io/doe-suite/installation.html)
 
-# Running the experiment
+# Running experiments for figures 6 & 8
 
 On cloudlab, create an experiment with the `multi_node_profile`, `UBUNTU22-64-STD` image and 2 hardware nodes of type `d430` available in `Emulab`.
 
@@ -42,18 +42,25 @@ Note: this experiment takes a long time to run (>4h).
 Also the very first time any experiment is run on the servers, the scripts automatically set up everything (installing libraraies, builing binaries etc.).
 During the setup process 2 failures are expected, the first one that cargo is missing and the second one is about setting up some networking configurations.
 Neither of these should stop the process, as the next commands should fix the issues and it should continue running.
-While the experiment scripts on your computer are waiting for the experiment to finish, there will be messages in the form of:
+
+The experiment will arrive at a block started by: 
+
 ```
-FAILED - RETRYING: [loader_node]: Get status of job (X retries left).
+# experiment-job: output progress information of experiments ***
 ```
-This is normal, as it is the experiment framework trying to retrieve the results, but seeing that the exeriment has not finished.
+This is indicating the experiment is running.
+Once it is finished a block started by: 
+
+```
+# STATS ***
+```
 
 For the experiment in figure 8 run the command:
 ```
 make run suite=mixed_workload_sosp id=new cloud=cloudlab
 ```
 
-# Creating the plots
+## Creating the plots
 
 Once all the data is collected, there should be a folder called `doe-suite-results`.
 In that folder the results will be in folders will be named `<experiment name>_<ID>`.
