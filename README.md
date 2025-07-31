@@ -1,6 +1,6 @@
 # Setup
 Originally we ran our experiments on internal servers, but have ported them to cloudlab, so evaluators can rerun them more easily.
-Consequently you will need a cloudlab account to get access to the resources.
+Consequently you will need a [cloudlab](https://www.cloudlab.us/) account to get access to the resources.
 
 We recommend Ubuntu 22.04: its apt repos still have python3.10 available, which is required by one of the dependencies.
 
@@ -56,7 +56,7 @@ In `doe-suite-config/inventory/cloudlab.yml` you need to replace the two placeho
 you can find these in the cloudlab experiment UI, by selecting "List View" and copying the two URIs after the `@` from the ssh commands;
 for example if you see `ssh user@pc778.emulab.net` and `ssh user@pc770.emulab.net` you will need to replace the two `<server url here>` placeholders with
 `pc778.emulab.net` and `pc770.emulab.net` respectively.
-Make sure to use the uri of node 0 is the loader and node 1 is the worker, so the IPs they use to address each other are correct.
+Make sure to use the URI of node 0 as the loader and the URI of node 1 as the worker, so that the IPs they use to address each other are correct.
 
 Additionally in the `doe-suite/ansible.cfg` add a additional line at the bottom (under `ssh_connection`):
 ```
