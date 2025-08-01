@@ -12,4 +12,4 @@ depend() {
 	after net
 }
 # TODO set this dynamically
-export STORAGE_HOST="10.233.0.14:8000"
+export STORAGE_HOST="10.10.1.1:8000"
