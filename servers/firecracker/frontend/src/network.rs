@@ -64,7 +64,7 @@ pub async fn teardown_vm_network(host_dev: &str, dev: &str) {
         "--in-interface",
         &dev,
         "--out-interface",
-        &host_dev,
+        host_dev,
         "--jump",
         "ACCEPT",
     ])
@@ -83,7 +83,7 @@ pub async fn setup_server_network(host_dev: &str) {
         "--append",
         "POSTROUTING",
         "--out-interface",
-        &host_dev,
+        host_dev,
         "--jump",
         "MASQUERADE",
     ])
@@ -114,7 +114,7 @@ pub async fn teardown_server_network(host_dev: &str) {
         "--delete",
         "POSTROUTING",
         "--out-interface",
-        &host_dev,
+        host_dev,
         "--jump",
         "MASQUERADE",
     ])

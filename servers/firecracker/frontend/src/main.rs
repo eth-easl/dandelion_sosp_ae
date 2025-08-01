@@ -176,7 +176,7 @@ async fn handle_function(
 #[derive(Parser, Debug)]
 struct Args {
     /// Number of hot machines to use
-    #[arg(long)]
+    #[arg(short, long)]
     hot: u32,
 
     /// Maximum number of cold machines to use
@@ -233,9 +233,10 @@ async fn main() {
         .expect("Should get output from grepping for IP in `ip address`")
         .stdout
     ).unwrap();
-    let network_device = network_string.split(' ').nth_back(0).unwrap();
+    let network_device: &str = Box::leak(network_string.split(' ').nth_back(0).unwrap().to_string().into_boxed_str());
+    
 
-    println!("have network device: {}", network_device);
+    println!("have network device: {}", &network_device);
     
     setup_server_network(&network_device).await;
 
