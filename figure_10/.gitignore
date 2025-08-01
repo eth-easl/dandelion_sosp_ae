@@ -1,3 +1,4 @@
 dandelion_*
 firecracker_*
 !azure_150_memory.csv
+!azure_150/*.csv
