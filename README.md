@@ -125,7 +125,7 @@ The progress bars should look the same as for the experiment above, but it does 
 - Create folder local folder `firecracker_100_100000` and transfer data from the cluster to it:
 	- `node0` -> `~/invitro/data/out/experiment_duration_30.csv`
 	- `node1` -> `/data/cold_start_trace.csv`
-	- `~~node2~~` -> `/data/proxy_trace.csv`
+	- `node2` -> `/data/proxy_trace.csv`
 
 #### Dandelion experiment:
 - Locally clone `https://github.com/eth-easl/dirigent` and checkout to `dandelion_sosp25_dandelion` branch.
