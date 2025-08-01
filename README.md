@@ -141,5 +141,5 @@ To only produce one of the plots, you can comment out the parts relating to the 
 
 # Experiments for Figure 10
 
-See `figure_10/README.md` for experiments and plotting scripts.
+See [figure_10/README.md](figure_10/README.md) for experiments and plotting scripts.
 
