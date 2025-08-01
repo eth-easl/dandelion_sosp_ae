@@ -1,3 +1,8 @@
+# Figure 10 experiments
+
+NOTE: The setup scripts assume that SSH keys for accessing any node in the Cloudlab cluster are present on the machine, i.e., that commands such as `ssh user@node` work. 
+You can ignore the prompt in `scripts/remote_install.sh` to add your SSH keys to your GitHub account, i.e., just press ENTER. 
+All repositories needed for running the following experiments are public.
 
 ## Firecracker experiment:
 - Locally clone https://github.com/eth-easl/dirigent and checkout to `dandelion_sosp25_firecracker` branch.
