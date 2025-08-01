@@ -202,6 +202,10 @@ struct Args {
     /// Attach to the serial console of the VM
     #[arg(long, default_value_t = false)]
     attach_vm: bool,
+
+    /// Which network device to attach the taps to
+    #[arg(long, default_value_t = String::from("lo"))]
+    nic: String,
 }
 
 lazy_static! {
@@ -217,7 +221,7 @@ async fn main() {
     info!("Launching");
     check_kvm().unwrap();
 
-    setup_server_network().await;
+    setup_server_network(&ARGS.nic).await;
 
     let ready = Arc::new(Barrier::new((ARGS.hot + ARGS.cold + 1) as usize));
     let token = CancellationToken::new();
@@ -231,7 +235,7 @@ async fn main() {
         let hot_work_queue_rx = hot_work_queue_rx.clone();
         tracker.spawn(async move {
             let worker = loop {
-                match VirtualMachineWorker::create(id, true).await {
+                match VirtualMachineWorker::create(id, true, &ARGS.nic).await {
                     Ok(worker) => break worker,
                     Err(err) => warn!("{:?}", err),
                 }
@@ -255,7 +259,7 @@ async fn main() {
         let cold_work_queue_rx = cold_work_queue_rx.clone();
         tracker.spawn(async move {
             let worker = loop {
-                match VirtualMachineWorker::create(id, false).await {
+                match VirtualMachineWorker::create(id, false, &ARGS.nic).await {
                     Ok(worker) => break worker,
                     Err(err) => warn!("{:?}", err),
                 }
@@ -322,5 +326,5 @@ async fn main() {
     tracker.close();
     tracker.wait().await;
 
-    teardown_server_network().await;
+    teardown_server_network(&ARGS.nic).await;
 }

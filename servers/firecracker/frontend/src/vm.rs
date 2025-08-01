@@ -157,10 +157,11 @@ pub struct VirtualMachineWorker {
     vminfo: VirtualMachineInfo,
     wktype: WorkerType,
     client: reqwest::Client,
+    host_dev: String,
 }
 
 impl VirtualMachineWorker {
-    pub async fn create(id: u32, is_hot: bool) -> Result<Self, MachineError> {
+    pub async fn create(id: u32, is_hot: bool, host_dev: &str) -> Result<Self, MachineError> {
         // limit the number of concurrency to reduce some unclear failures in vm.start()
         let _permit = PERMITS.acquire().await.unwrap();
 
@@ -170,7 +171,7 @@ impl VirtualMachineWorker {
             std::fs::remove_file(&vminfo.socket_path).unwrap();
         }
 
-        setup_vm_network(&vminfo.tap_dev, &vminfo.tap_ip).await;
+        setup_vm_network(host_dev, &vminfo.tap_dev, &vminfo.tap_ip).await;
 
         let client = reqwest::ClientBuilder::new()
             .no_proxy()
@@ -205,6 +206,7 @@ impl VirtualMachineWorker {
             vminfo,
             wktype,
             client,
+            host_dev: host_dev.to_string()
         });
     }
 
@@ -215,7 +217,7 @@ impl VirtualMachineWorker {
             // vm.shutdown().await.unwrap();
             vm.stop_vmm().await.unwrap();
         }
-        teardown_vm_network(&self.vminfo.tap_dev).await;
+        teardown_vm_network(&self.host_dev, &self.vminfo.tap_dev).await;
     }
 
     pub async fn serve(&self, work: Work) {
