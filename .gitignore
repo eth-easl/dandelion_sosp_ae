@@ -3,6 +3,8 @@
 # go ignores
 **/main
 
+.idea
+
 # firecracker artifacts
 servers/firecracker/app
 servers/firecracker/main
