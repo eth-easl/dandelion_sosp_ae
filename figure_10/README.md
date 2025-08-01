@@ -14,7 +14,7 @@
 	- `node2` -> `/data/proxy_trace.csv`
 
 ## Dandelion experiment:
-- Locally clone `https://github.com/eth-easl/dirigent` and checkout to `dandelion_sosp25_dandelion` branch.
+- Locally clone `https://github.com/eth-easl/dirigent` and checkout to `dandelion_sosp25_dandelion_new` branch.
 - Create a Cloudlab cluster of 4 `d430` nodes with Dirigent profile (https://www.cloudlab.us/p/faas-sched/dirigent).
 - On your local machine execute `scripts/remote_install.sh <username>@<node0> <username>@<node1> <username>@<node2> <username>@<node3>`. Replace username and `node[0-3]`.
 - On your local machine execute `scripts/remote_start_cluster.sh <username>@<node0> <username>@<node1> <username>@<node2> <username>@<node3>`. Replace username and `node[0-3]`.
