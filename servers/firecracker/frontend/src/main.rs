@@ -176,7 +176,7 @@ async fn handle_function(
 #[derive(Parser, Debug)]
 struct Args {
     /// Number of hot machines to use
-    #[arg(short, long)]
+    #[arg(long)]
     hot: u32,
 
     /// Maximum number of cold machines to use
@@ -205,7 +205,7 @@ struct Args {
 
     /// Which network device to attach the taps to
     #[arg(long, default_value_t = String::from("lo"))]
-    nic: String,
+    nic_ip: String,
 }
 
 lazy_static! {
@@ -220,8 +220,24 @@ async fn main() {
     println!("arguments: {:#?}", *ARGS);
     info!("Launching");
     check_kvm().unwrap();
+ 
+    let mut ip_address = std::process::Command::new("ip");
+    ip_address.arg("address");
+    ip_address.stdout(std::process::Stdio::piped());
+    let mut ip_address_com = ip_address.spawn().expect("Failed to run `ip address`");
+    let network_string = String::from_utf8(
+        std::process::Command::new("grep")
+        .arg(&ARGS.nic_ip)
+        .stdin(ip_address_com.stdout.take().expect("Failed to take `ip address` stdout"))
+        .output()
+        .expect("Should get output from grepping for IP in `ip address`")
+        .stdout
+    ).unwrap();
+    let network_device = network_string.split(' ').nth_back(0).unwrap();
 
-    setup_server_network(&ARGS.nic).await;
+    println!("have network device: {}", network_device);
+    
+    setup_server_network(&network_device).await;
 
     let ready = Arc::new(Barrier::new((ARGS.hot + ARGS.cold + 1) as usize));
     let token = CancellationToken::new();
@@ -235,7 +251,7 @@ async fn main() {
         let hot_work_queue_rx = hot_work_queue_rx.clone();
         tracker.spawn(async move {
             let worker = loop {
-                match VirtualMachineWorker::create(id, true, &ARGS.nic).await {
+                match VirtualMachineWorker::create(id, true, &network_device).await {
                     Ok(worker) => break worker,
                     Err(err) => warn!("{:?}", err),
                 }
@@ -259,7 +275,7 @@ async fn main() {
         let cold_work_queue_rx = cold_work_queue_rx.clone();
         tracker.spawn(async move {
             let worker = loop {
-                match VirtualMachineWorker::create(id, false, &ARGS.nic).await {
+                match VirtualMachineWorker::create(id, false, &network_device).await {
                     Ok(worker) => break worker,
                     Err(err) => warn!("{:?}", err),
                 }
@@ -326,5 +342,5 @@ async fn main() {
     tracker.close();
     tracker.wait().await;
 
-    teardown_server_network(&ARGS.nic).await;
+    teardown_server_network(&network_device).await;
 }
