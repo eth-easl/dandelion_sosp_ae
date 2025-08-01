@@ -117,7 +117,8 @@ make run suite=mixed_workload_sosp id=new cloud=cloudlab
 
 The progress bars should look the same as for the experiment above, but it does finish much faster.
 
-# Cleaning up machines
+## Cleaning up machines
+
 After the experiments are done, you can clean up the machines by running the `dummy` suite:
 ```
 make run suite=dummy id=new cloud=cloudlab
