@@ -71,7 +71,8 @@ retries = 10
 ```
 
 Finally you need to add an ssh config: add the following to `~/.ssh/config` (create the file if necessary):
-(note: replace `<cloudlab username>` with your cloudlab username)
+(note: replace `<cloudlab username>` with your cloudlab username; if you are using the container, this ssh
+config goes inside the container, in `/root/.ssh/config`)
 ```
 Host *.emulab.net
   ForwardAgent yes
