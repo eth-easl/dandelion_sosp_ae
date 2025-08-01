@@ -29,5 +29,5 @@ export DOES_PROJECT_ID_SUFFIX="eval"
 export DOES_SSH_KEY_NAME=/root/keys/<path to private key>
 ```
 
-You can now continue by following the steps for "Running experiments" in the [README](README.md).
+You can now continue by following the steps for "Setting up for experiments" in the [README](README.md).
 

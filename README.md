@@ -7,7 +7,7 @@ You only need a readonly key for public GitHub repositories: to add one, you can
 Make sure your ssh agent is running and has access to this ssh key.
 
 We recommend Ubuntu 22.04: its apt repos still have python3.10 available, which is required by one of the dependencies.
-If you are not on Ubuntu 22.04, you can use a [container](container.md): if you do so, follow the instructions there, then continue from "Running experiments".
+If you are not on Ubuntu 22.04, you can use a [container](container.md): if you do so, follow the instructions there, then continue from "Setting up for experiments".
 
 Start it:
 ```
@@ -52,7 +52,7 @@ Ubuntu 22.04.5 LTS with the 5.15.0-136-generic Kernel
 CPU: Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz, Hyperthreading disabled
 NIC: Mellanox ConnectX-3 (MT27500)
 
-# Running experiments for figures 6 & 8
+# Setting up for experiments
 
 On cloudlab, create an experiment with the `multi_node_profile`, `UBUNTU22-64-STD` image and 2 hardware nodes of type `d430` available in `Emulab`.
 
@@ -68,6 +68,16 @@ Additionally in the `doe-suite/ansible.cfg` add a additional line at the bottom 
 ```
 retries = 10
 ```
+
+Finally you need to add an ssh config: add the following to `~/.ssh/config` (create the file if necessary):
+(note: replace `<cloudlab username>` with your cloudlab username)
+```
+Host *.emulab.net
+  ForwardAgent yes
+  User <cloudlab username>
+```
+
+# Running experiments for figures 6 & 8
 
 To rerun the experiments for figure 6 in the paper, run the following command in the `doe-suite` folder:
 ```
