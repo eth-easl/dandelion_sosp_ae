@@ -881,7 +881,7 @@ class MixedWorkloadLoader(PlotLoader):
             average = (server_function_group['responseTime']/1e3).mean()
             variance =(server_function_group['responseTime']/1e3).var()
             print(f"average {average}, variance {variance}, percentage {100*variance/average}")
-            failure_threshold = 65000
+            failure_threshold = 95000
             success_data = server_function_group[server_function_group["responseTime"] < failure_threshold]
             failure_data = server_function_group[server_function_group["responseTime"] >= failure_threshold]
             success_data_x = success_data["startTime"] / 1e6
@@ -900,7 +900,7 @@ class MixedWorkloadLoader(PlotLoader):
             )
             axis.set_title(f"{LINE_DICT[server].name}", y=title_hight)
             axis.set_ylabel('latency [ms]')
-            axis.set_ylim(bottom=0, top=70)
+            axis.set_ylim(bottom=0, top=100)
 
 
         # axis.grid(True)
