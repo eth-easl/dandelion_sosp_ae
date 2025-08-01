@@ -1,12 +1,15 @@
 To follow these steps, you need a container runtime like docker.
 
-Start a container and bind-mount the directory with you GitHub (deploy) key and CloudLab key (see the note in [README.md](README.md) on how to set up a key):
+Start a container and bind-mount (i) the directory with you GitHub (deploy) key and CloudLab key (see the note in [README.md](README.md) on how to set up a key) and (ii) bind-mount a new directory to extract the plots:
 
 (note: replace `<path to key directory on host>` to the directory created during [key set-up](key.md))
+(note: replace `<path to plot directory on host>` to the new directory created to collect the plots)
 
 ```
-docker run -it --rm --mount type=bind,src=<path to key directory on host>,dst=/root/keys,ro ubuntu:22.04 bash
+docker run -it --rm --mount type=bind,src=<path to key directory on host>,dst=/root/keys,ro --mount type=bind,src=<path to plot directory on host>,dst=/root/plots ubuntu:22.04 bash
 ```
+
+Once the experiments are complete inside the container, copy them to `/root/plots` so you have access to them at `<pat to plot directory on host>` on the host.
 
 Then in the container, run (note: replace `<path to private key>` with the name of the private key):
 
