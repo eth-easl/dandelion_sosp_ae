@@ -1,6 +1,6 @@
 # Setup
 Originally we ran our experiments on internal servers, but have ported them to cloudlab, so evaluators can rerun them more easily.
-Consequently you will need a [cloudlab](https://www.cloudlab.us/) account to get access to the resources.
+You will need a [CloudLab](https://www.cloudlab.us/) account and to be part of a "project" to start cloudlab experiment. If you don't have an account and project you can join, you can create a new project by following the instructions [in the CloudLab guide](https://docs.cloudlab.us/users.html#(part._create-project) ("2.1.2 Create a new project"): the applications for new projects are reviewd by CloudLab staff, which may take a few days.
 
 Our setup requires that the ssh key for GitHub and Cloudlab are the same.
 You only need a readonly key for public GitHub repositories: to add one, you can add it as a deploy key to a temporary repository, it will also allow pulling from public GitHub repositories. Detailed instructions are available [here](key.md).
@@ -78,6 +78,8 @@ Host *.emulab.net
   ForwardAgent yes
   User <cloudlab username>
 ```
+
+If you are modifying your host's ssh config, remember to undo this step once you are done.
 
 # Running experiments for figures 6 & 8
 
