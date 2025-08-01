@@ -2,7 +2,13 @@
 Originally we ran our experiments on internal servers, but have ported them to cloudlab, so evaluators can rerun them more easily.
 You will need a [CloudLab](https://www.cloudlab.us/) account and to be part of a "project" to start cloudlab experiments. If you don't have an account and project you can join, you can create a new project by following the instructions [in the CloudLab guide](https://docs.cloudlab.us/users.html#(part._create-project)) ("2.1.2 Create a new project"): the applications for new projects are reviewd by CloudLab staff, which may take a few days.
 
-Our setup requires that the ssh key for GitHub and Cloudlab are the same.
+There are two separate set of experiments with two different setups:
+- one for figures 6 & 8
+- one for figure 10
+
+# Experiments for figures 6 & 8
+
+Our setup for figures 6 & 8 requires that the ssh key for GitHub and Cloudlab are the same.
 You only need a readonly key for public GitHub repositories: to add one, you can add it as a deploy key to a temporary repository, it will also allow pulling from public GitHub repositories. Detailed instructions are available [here](key.md).
 Make sure your ssh agent is running and has access to this ssh key (as described in the following step).
 
@@ -53,7 +59,7 @@ Ubuntu 22.04.5 LTS with the 5.15.0-136-generic Kernel
 CPU: Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz, Hyperthreading disabled
 NIC: Mellanox ConnectX-3 (MT27500)
 
-# Setting up for experiments
+## Setting up for experiments
 
 On cloudlab, create an experiment with the `multi_node_profile`, `UBUNTU22-64-STD` image and 2 hardware nodes of type `d430` available in `Emulab`.
 
@@ -81,7 +87,7 @@ Host *.emulab.net
 
 If you are modifying your host's ssh config, remember to undo this step once you are done.
 
-# Running experiments for figures 6 & 8
+## Running the experiments
 
 To rerun the experiments for figure 6 in the paper, run the following command in the `doe-suite` folder:
 ```
@@ -117,10 +123,6 @@ After the experiments are done, you can clean up the machines by running the `du
 make run suite=dummy id=new cloud=cloudlab
 ```
 
-# Experiments for Figure 10
-
-See `figure_10/README.md` for experiments and plotting scripts.
-
 ## Creating the plots
 
 Once all the data is collected, there should be a folder called `doe-suite-results`.
@@ -135,3 +137,8 @@ make etl-super config=SOSP_plots
 
 To only produce one of the plots, you can comment out the parts relating to the other plot.
 (This includes the line with suite id as well as the block containing the experiemnts, extractors, transformers and loaders)
+
+# Experiments for Figure 10
+
+See `figure_10/README.md` for experiments and plotting scripts.
+
