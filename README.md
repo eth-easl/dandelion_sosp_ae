@@ -42,7 +42,8 @@ python3 -m pip install --user pipx
 pipx install poetry
 pipx install cookiecutter
 ```
-For additional information on the suite, documentation and setup instructions can be found [here](https://nicolas-kuechler.github.io/doe-suite/installation.html)
+
+This guide includes all the necessary steps, but should you need to refer to additional information, documentation and setup instructions for the doe-suite, you can find them at [https://nicolas-kuechler.github.io/doe-suite/installation.html](https://nicolas-kuechler.github.io/doe-suite/installation.html).
 
 ## Notes:
 
