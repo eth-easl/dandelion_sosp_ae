@@ -61,7 +61,7 @@ NIC: Mellanox ConnectX-3 (MT27500)
 
 ## Setting up for experiments
 
-On cloudlab, create an experiment with the `multi_node_profile`, `UBUNTU22-64-STD` image and 2 hardware nodes of type `d430` available in `Emulab`.
+On cloudlab, create an experiment with the `multi_node_profile`, `UBUNTU22-64-STD` image and 2 hardware nodes of type `d430` available in `Emulab`. And under the Advanced options, make sure you select an explicit link speed of 10Gbps.
 
 In `doe-suite-config/inventory/cloudlab.yml` you need to replace the two placeholders with the URIs of the servers:
 you can find these in the cloudlab experiment UI, by selecting "List View" and copying the two URIs after the `@` from the ssh commands;
