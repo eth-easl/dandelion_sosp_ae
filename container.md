@@ -2,6 +2,8 @@ To follow these steps, you need a container runtime like docker.
 
 Start a container and bind-mount the directory with you GitHub (deploy) key and CloudLab key (see the note in [README.md](README.md) on how to set up a key):
 
+(note: replace `<path to key directory on host>` to the directory created during [key set-up](key.md))
+
 ```
 docker run -it --rm --mount type=bind,src=<path to key directory on host>,dst=/root/keys,ro ubuntu:22.04 bash
 ```
